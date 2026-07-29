@@ -1,4 +1,5 @@
 pub mod section_header;
+pub mod token_record;
 pub mod version;
 pub mod section;
 pub mod header;
