@@ -1,3 +1,5 @@
+use crate::ids::TokenId;
+
 /// Points to the outgoing relations of every token.
 #[derive(Debug, Default)]
 pub struct AdjacencyList {
@@ -22,6 +24,10 @@ impl AdjacencyEntry {
     pub const fn count(&self) -> usize {
         self.count
     }
+
+    pub const fn end(&self) -> usize {
+        self.offset + self.count
+    }
 }
 
 impl AdjacencyList {
@@ -29,7 +35,19 @@ impl AdjacencyList {
         Self { entries }
     }
 
-    pub fn get(&self, token: usize) -> Option<&AdjacencyEntry> {
-        self.entries.get(token)
+    pub fn get(&self, token_id: TokenId) -> Option<&AdjacencyEntry> {
+        self.entries.get(token_id.value() as usize)
+    }
+
+    pub fn contains(&self, token_id: TokenId) -> bool {
+        self.get(token_id).is_some()
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
     }
 }
