@@ -7,4 +7,4 @@ members = [
     "crates/lxdb-compiler",
     "crates/lxdb-format",
     "crates/lxdb-cli"
-]
+, "crates/lxdb-storage"]
