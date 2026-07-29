@@ -11,6 +11,16 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Compile a text source into an LXDB binary dataset.
+    Compile {
+        /// Path to the source dataset.
+        source: PathBuf,
+
+        /// Output path for the compiled .lxdb file.
+        #[arg(short, long, value_name = "OUTPUT")]
+        output: PathBuf,
+    },
+
     /// Query the outgoing relations of a token.
     Query {
         /// Path to the compiled .lxdb dataset.

@@ -4,7 +4,16 @@ use lxdb_engine::EngineError;
 
 #[derive(Debug)]
 pub enum CliError {
-    OpenDataset { path: PathBuf, source: Box<dyn Error + Send + Sync> },
+    CompileDataset {
+        source_path: PathBuf,
+        output_path: PathBuf,
+        source: Box<dyn Error + Send + Sync>,
+    },
+
+    OpenDataset {
+        path: PathBuf,
+        source: Box<dyn Error + Send + Sync>,
+    },
 
     Query(EngineError),
 }
@@ -12,6 +21,15 @@ pub enum CliError {
 impl fmt::Display for CliError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::CompileDataset { source_path, output_path, source } => {
+                write!(
+                    formatter,
+                    "failed to compile '{}' into '{}': {source}",
+                    source_path.display(),
+                    output_path.display(),
+                )
+            }
+
             Self::OpenDataset { path, source } => {
                 write!(formatter, "failed to open dataset '{}': {source}", path.display(),)
             }
@@ -26,7 +44,9 @@ impl fmt::Display for CliError {
 impl Error for CliError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            Self::OpenDataset { source, .. } => Some(source.as_ref()),
+            Self::CompileDataset { source, .. } | Self::OpenDataset { source, .. } => {
+                Some(source.as_ref())
+            }
 
             Self::Query(error) => Some(error),
         }
