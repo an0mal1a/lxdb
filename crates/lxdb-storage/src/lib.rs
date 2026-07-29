@@ -1,14 +1,9 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod dataset;
+mod error;
+mod reader;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use dataset::BinaryDataset;
+pub use error::StorageError;
+pub use reader::DatasetReader;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub(crate) use dataset::SectionRange;
