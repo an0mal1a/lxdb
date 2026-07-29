@@ -1,3 +1,4 @@
+pub mod adjacency_record;
 pub mod relation_record;
 pub mod section_header;
 pub mod token_record;
