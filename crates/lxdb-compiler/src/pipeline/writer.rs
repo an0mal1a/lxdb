@@ -1,8 +1,14 @@
-use lxdb_core::{graph::SemanticGraph, traversal::GraphTraversal};
+use std::io;
 
-use lxdb_format::{AdjacencyRecord, Header, RelationRecord, TokenRecord};
+use lxdb_core::graph::SemanticGraph;
+use lxdb_format::{
+    AdjacencyRecord, Header, RelationRecord, Section, SectionHeader, TokenRecord, flags,
+};
 
 /// Encodes a semantic graph into the LXDB binary format.
+///
+/// The writer is storage-agnostic: it produces an in-memory byte buffer
+/// and leaves persistence to the caller.
 #[derive(Debug, Default)]
 pub struct Writer;
 
@@ -11,36 +17,86 @@ impl Writer {
         Self
     }
 
-    pub fn encode(&self, graph: &SemanticGraph) -> Result<Vec<u8>, std::io::Error> {
-        let mut bytes = Vec::new();
+    pub fn encode(&self, graph: &SemanticGraph) -> Result<Vec<u8>, io::Error> {
+        let token_records = self.encode_token_records(graph)?;
+        let string_table = self.encode_string_table(graph);
+        let relation_records = self.encode_relation_records(graph)?;
+        let adjacency_records = self.encode_adjacency_records(graph)?;
 
-        //----------------------------------
-        // Header
-        //----------------------------------
+        let capacity = Header::SIZE
+            + SectionHeader::SIZE * 4
+            + token_records.len()
+            + string_table.len()
+            + relation_records.len()
+            + adjacency_records.len();
+
+        let mut bytes = Vec::with_capacity(capacity);
 
         bytes.extend_from_slice(&Header::current().encode());
 
-        //----------------------------------
-        // Token Records + String Table
-        //----------------------------------
+        Self::append_section(&mut bytes, Section::Tokens, &token_records)?;
+        Self::append_section(&mut bytes, Section::TokenStringTable, &string_table)?;
+        Self::append_section(&mut bytes, Section::Relations, &relation_records)?;
+        Self::append_section(&mut bytes, Section::Adjacency, &adjacency_records)?;
 
-        let mut string_table = Vec::<u8>::new();
+        Ok(bytes)
+    }
+
+    fn append_section(
+        output: &mut Vec<u8>,
+        section: Section,
+        payload: &[u8],
+    ) -> Result<(), io::Error> {
+        let payload_length = u64::try_from(payload.len()).map_err(|_| {
+            io::Error::new(io::ErrorKind::InvalidData, "section payload is too large to encode")
+        })?;
+
+        let header = SectionHeader::new(section, flags::NONE, payload_length);
+
+        output.extend_from_slice(&header.encode());
+        output.extend_from_slice(payload);
+
+        Ok(())
+    }
+
+    fn encode_token_records(&self, graph: &SemanticGraph) -> Result<Vec<u8>, io::Error> {
+        let mut records =
+            Vec::with_capacity(graph.tokens().len().saturating_mul(TokenRecord::SIZE));
+
+        let mut string_offset = 0_u64;
 
         for token in graph.tokens() {
-            let offset = string_table.len() as u32;
+            let text_length = u32::try_from(token.text().len()).map_err(|_| {
+                io::Error::new(io::ErrorKind::InvalidData, "token text is too large to encode")
+            })?;
 
-            string_table.extend_from_slice(token.text().as_bytes());
+            let record = TokenRecord::new(token.id().value(), string_offset, text_length);
 
-            let record = TokenRecord::new(token.id().value(), offset, token.text().len() as u32);
+            records.extend_from_slice(&record.encode());
 
-            bytes.extend_from_slice(&record.encode());
+            string_offset = string_offset.checked_add(u64::from(text_length)).ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidData, "token string table offset overflow")
+            })?;
         }
 
-        bytes.extend_from_slice(&string_table);
+        Ok(records)
+    }
 
-        //----------------------------------
-        // Relations
-        //----------------------------------
+    fn encode_string_table(&self, graph: &SemanticGraph) -> Vec<u8> {
+        let capacity = graph.tokens().iter().map(|token| token.text().len()).sum();
+
+        let mut table = Vec::with_capacity(capacity);
+
+        for token in graph.tokens() {
+            table.extend_from_slice(token.text().as_bytes());
+        }
+
+        table
+    }
+
+    fn encode_relation_records(&self, graph: &SemanticGraph) -> Result<Vec<u8>, io::Error> {
+        let mut records =
+            Vec::with_capacity(graph.relations().len().saturating_mul(RelationRecord::SIZE));
 
         for relation in graph.relations() {
             let record = RelationRecord::new(
@@ -50,24 +106,40 @@ impl Writer {
                 relation.weight().value(),
             );
 
-            bytes.extend_from_slice(&record.encode());
+            records.extend_from_slice(&record.encode());
         }
 
-        //----------------------------------
-        // Adjacency
-        //----------------------------------
+        Ok(records)
+    }
+
+    fn encode_adjacency_records(&self, graph: &SemanticGraph) -> Result<Vec<u8>, io::Error> {
+        let mut records =
+            Vec::with_capacity(graph.tokens().len().saturating_mul(AdjacencyRecord::SIZE));
 
         for token in graph.tokens() {
-            let outgoing = graph.outgoing(token.id());
+            let Some(entry) = graph.adjacency().get(token.id()) else {
+                records.extend_from_slice(&AdjacencyRecord::new(0, 0).encode());
+                continue;
+            };
 
-            let offset = outgoing.first().map(|r| r.id().value() as u64).unwrap_or(0);
+            let offset = u64::try_from(entry.offset()).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "adjacency offset is too large to encode",
+                )
+            })?;
 
-            let record = AdjacencyRecord::new(offset, outgoing.len() as u32);
+            let count = u32::try_from(entry.count()).map_err(|_| {
+                io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "adjacency relation count is too large to encode",
+                )
+            })?;
 
-            bytes.extend_from_slice(&record.encode());
+            records.extend_from_slice(&AdjacencyRecord::new(offset, count).encode());
         }
 
-        Ok(bytes)
+        Ok(records)
     }
 }
 

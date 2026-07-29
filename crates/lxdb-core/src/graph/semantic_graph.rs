@@ -25,6 +25,10 @@ impl SemanticGraph {
     pub fn relations(&self) -> &[Relation] {
         &self.relations
     }
+
+    pub fn adjacency(&self) -> &AdjacencyList {
+        &self.adjacency
+    }
 }
 
 impl GraphTraversal for SemanticGraph {
