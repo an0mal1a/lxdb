@@ -85,8 +85,10 @@ fn compiles_queries_and_inspects_the_example_dataset() {
 fn reports_invalid_sources_and_corrupt_datasets_as_failures() {
     let directory = test_directory();
     let invalid_source = directory.join("invalid.lx");
+    let missing_source = directory.join("missing.lx");
     let output_dataset = directory.join("invalid.lxdb");
     let corrupt_dataset = directory.join("corrupt.lxdb");
+    let missing_dataset = directory.join("missing.lxdb");
 
     fs::write(&invalid_source, "token rust\n").expect("invalid source should be written");
     fs::write(&corrupt_dataset, [0_u8; 8]).expect("corrupt dataset should be written");
@@ -101,6 +103,17 @@ fn reports_invalid_sources_and_corrupt_datasets_as_failures() {
     assert!(!success);
     assert!(stderr.contains("invalid syntax at line 1: token rust"));
 
+    let (success, _, stderr) = output(
+        Command::new(cli())
+            .arg("compile")
+            .arg(&missing_source)
+            .arg("--output")
+            .arg(&output_dataset),
+    );
+    assert!(!success);
+    assert!(stderr.contains("failed to compile"));
+    assert!(stderr.contains("input/output error"));
+
     let (success, _, stderr) =
         output(Command::new(cli()).arg("query").arg(&corrupt_dataset).arg("rust"));
     assert!(!success);
@@ -108,6 +121,11 @@ fn reports_invalid_sources_and_corrupt_datasets_as_failures() {
     assert!(stderr.contains("invalid or unsupported LXDB header"));
 
     let (success, _, stderr) = output(Command::new(cli()).arg("inspect").arg(&corrupt_dataset));
+    assert!(!success);
+    assert!(stderr.contains("failed to open dataset"));
+
+    let (success, _, stderr) =
+        output(Command::new(cli()).arg("query").arg(&missing_dataset).arg("rust"));
     assert!(!success);
     assert!(stderr.contains("failed to open dataset"));
 
