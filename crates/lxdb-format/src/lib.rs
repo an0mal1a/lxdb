@@ -9,6 +9,7 @@ pub mod adjacency_record;
 pub mod relation_record;
 pub mod token_record;
 
+pub use adjacency_record::{ADJACENCY_RECORD_SIZE, AdjacencyRecord};
 pub use header::{HEADER_SIZE, Header};
 pub use magic::MAGIC;
 pub use relation_record::{RELATION_RECORD_SIZE, RelationRecord};
