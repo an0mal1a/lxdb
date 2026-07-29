@@ -1,7 +1,4 @@
-use crate::{
-    ids::TokenId,
-    model::Relation,
-};
+use crate::{ids::TokenId, model::Relation};
 
 /// Read-only graph traversal interface.
 pub trait GraphTraversal {

@@ -1,5 +1,5 @@
-use crate::graph::SemanticGraph;
 use super::Metadata;
+use crate::graph::SemanticGraph;
 
 /// Immutable LXDB dataset.
 #[derive(Debug)]
@@ -9,14 +9,8 @@ pub struct Dataset {
 }
 
 impl Dataset {
-    pub fn new(
-        metadata: Metadata,
-        graph: SemanticGraph,
-    ) -> Self {
-        Self {
-            metadata,
-            graph,
-        }
+    pub fn new(metadata: Metadata, graph: SemanticGraph) -> Self {
+        Self { metadata, graph }
     }
 
     pub const fn metadata(&self) -> &Metadata {

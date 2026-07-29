@@ -1,9 +1,9 @@
 pub mod adjacency_record;
+pub mod flags;
+pub mod header;
+pub mod magic;
 pub mod relation_record;
+pub mod section;
 pub mod section_header;
 pub mod token_record;
 pub mod version;
-pub mod section;
-pub mod header;
-pub mod flags;
-pub mod magic;

@@ -12,18 +12,8 @@ pub struct Relation {
 }
 
 impl Relation {
-    pub fn new(
-        id: RelationId,
-        source: TokenId,
-        target: TokenId,
-        weight: Weight,
-    ) -> Self {
-        Self {
-            id,
-            source,
-            target,
-            weight,
-        }
+    pub fn new(id: RelationId, source: TokenId, target: TokenId, weight: Weight) -> Self {
+        Self { id, source, target, weight }
     }
 
     pub const fn id(&self) -> RelationId {

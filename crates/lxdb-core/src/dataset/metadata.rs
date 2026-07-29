@@ -9,18 +9,8 @@ pub struct Metadata {
 }
 
 impl Metadata {
-    pub fn new(
-        id: DatasetId,
-        language: LanguageId,
-        version: u16,
-        name: Box<str>,
-    ) -> Self {
-        Self {
-            id,
-            language,
-            version,
-            name,
-        }
+    pub fn new(id: DatasetId, language: LanguageId, version: u16, name: Box<str>) -> Self {
+        Self { id, language, version, name }
     }
 
     pub const fn id(&self) -> DatasetId {

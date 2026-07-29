@@ -9,9 +9,6 @@ pub struct Header {
 
 impl Header {
     pub const fn new() -> Self {
-        Self {
-            magic: MAGIC,
-            version: VERSION,
-        }
+        Self { magic: MAGIC, version: VERSION }
     }
 }

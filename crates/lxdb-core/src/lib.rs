@@ -1,9 +1,9 @@
-pub mod traversal;
-pub mod storage;
 pub mod dataset;
-pub mod graph;
-pub mod model;
-pub mod index;
-pub mod query;
 pub mod error;
+pub mod graph;
 pub mod ids;
+pub mod index;
+pub mod model;
+pub mod query;
+pub mod storage;
+pub mod traversal;

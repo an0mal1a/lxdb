@@ -1,7 +1,7 @@
 mod graph_builder;
+mod parser;
 mod validator;
 mod writer;
-mod parser;
 
 pub use graph_builder::GraphBuilder;
 pub use parser::Parser;

@@ -9,15 +9,7 @@ pub struct SectionHeader {
 }
 
 impl SectionHeader {
-    pub const fn new(
-        section: Section,
-        flags: u16,
-        length: u64,
-    ) -> Self {
-        Self {
-            section,
-            flags,
-            length,
-        }
+    pub const fn new(section: Section, flags: u16, length: u64) -> Self {
+        Self { section, flags, length }
     }
 }

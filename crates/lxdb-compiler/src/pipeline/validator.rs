@@ -1,17 +1,10 @@
-use crate::{
-    error::CompilerError,
-    pipeline::parser::ParseResult,
-};
+use crate::{error::CompilerError, pipeline::parser::ParseResult};
 
 #[derive(Debug, Default)]
 pub struct Validator;
 
 impl Validator {
-    pub fn validate(
-        &self,
-        result: ParseResult,
-    ) -> Result<ParseResult, CompilerError> {
-
+    pub fn validate(&self, result: ParseResult) -> Result<ParseResult, CompilerError> {
         for token in &result.tokens {
             if token.text.trim().is_empty() {
                 return Err(CompilerError::EmptyToken);

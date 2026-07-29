@@ -1,4 +1,7 @@
-use crate::{model::{Relation, Token}, storage::AdjacencyList};
+use crate::{
+    model::{Relation, Token},
+    storage::AdjacencyList,
+};
 
 /// Immutable semantic graph.
 ///
