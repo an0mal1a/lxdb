@@ -7,6 +7,20 @@ use crate::ids::TokenId;
 /// Tokens are immutable once compiled.
 #[derive(Debug, Clone)]
 pub struct Token {
-    pub id: TokenId,
-    pub text: String,
+    id: TokenId,
+    text: Box<str>,
+}
+
+impl Token {
+    pub fn new(id: TokenId, text: Box<str>) -> Self {
+        Self { id, text }
+    }
+
+    pub const fn id(&self) -> TokenId {
+        self.id
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
 }
