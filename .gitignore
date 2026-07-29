@@ -7,3 +7,5 @@ apps/web/.output
 
 .idea
 .vscode
+
+*.lxdb

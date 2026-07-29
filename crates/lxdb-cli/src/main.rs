@@ -15,6 +15,8 @@ fn main() -> ExitCode {
         Command::Compile { source, output } => command::execute_compile(&source, &output),
 
         Command::Query { dataset, token } => command::execute_query(&dataset, &token),
+
+        Command::Inspect { dataset } => command::execute_inspect(&dataset),
     };
 
     match result {

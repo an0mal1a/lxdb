@@ -1,0 +1,10 @@
+# LXDB semantic dataset. Tokens are inferred from the relations below.
+# A token that appears only on the right-hand side has no outgoing relations.
+
+rust -> language : 0.95
+rust -> compiler : 0.70
+rust -> memory : 0.88
+
+language -> systems : 0.80
+memory -> ownership : 1.0
+ownership -> borrowing : 0.92

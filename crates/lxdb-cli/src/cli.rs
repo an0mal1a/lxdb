@@ -29,4 +29,10 @@ pub enum Command {
         /// Exact token text to query.
         token: String,
     },
+
+    /// Display structural information about a compiled .lxdb dataset.
+    Inspect {
+        /// Path to the compiled .lxdb dataset.
+        dataset: PathBuf,
+    },
 }

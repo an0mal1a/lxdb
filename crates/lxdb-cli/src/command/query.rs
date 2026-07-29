@@ -1,14 +1,11 @@
 use std::path::Path;
 
 use lxdb_engine::BinaryDatasetExt;
-use lxdb_storage::DatasetReader;
 
-use crate::error::CliError;
+use crate::{command::open_dataset, error::CliError};
 
 pub fn execute_query(dataset_path: &Path, token_text: &str) -> Result<(), CliError> {
-    let dataset = DatasetReader::new().open(dataset_path).map_err(|source| {
-        CliError::OpenDataset { path: dataset_path.to_path_buf(), source: Box::new(source) }
-    })?;
+    let dataset = open_dataset(dataset_path)?;
 
     let query = dataset.query();
 
