@@ -84,7 +84,6 @@ fn insert_token(text: &str, known_tokens: &mut HashSet<String>, tokens: &mut Vec
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::{
@@ -94,10 +93,7 @@ mod tests {
     };
 
     use super::Parser;
-    use crate::{
-        builder::Builder,
-        error::CompilerError,
-    };
+    use crate::{builder::Builder, error::CompilerError};
 
     #[test]
     fn parses_plain_text_dataset() {
@@ -111,12 +107,9 @@ memory -> ownership : 1.0
 ",
         );
 
-        let builder = Builder::new()
-            .input(path.to_string_lossy().into_owned());
+        let builder = Builder::new().input(path.to_string_lossy().into_owned());
 
-        let result = Parser
-            .parse(&builder)
-            .expect("dataset parsing should succeed");
+        let result = Parser.parse(&builder).expect("dataset parsing should succeed");
 
         assert_eq!(result.tokens.len(), 4);
         assert_eq!(result.relations.len(), 3);
@@ -147,12 +140,9 @@ ownership -> memory : 0.8
 ",
         );
 
-        let builder = Builder::new()
-            .input(path.to_string_lossy().into_owned());
+        let builder = Builder::new().input(path.to_string_lossy().into_owned());
 
-        let result = Parser
-            .parse(&builder)
-            .expect("comments and empty lines should be ignored");
+        let result = Parser.parse(&builder).expect("comments and empty lines should be ignored");
 
         assert_eq!(result.tokens.len(), 3);
         assert_eq!(result.relations.len(), 2);
@@ -168,15 +158,11 @@ rust ownership 1.0
 ",
         );
 
-        let builder = Builder::new()
-            .input(path.to_string_lossy().into_owned());
+        let builder = Builder::new().input(path.to_string_lossy().into_owned());
 
         let result = Parser.parse(&builder);
 
-        assert!(matches!(
-            result,
-            Err(CompilerError::InvalidSyntax { line: 1, .. })
-        ));
+        assert!(matches!(result, Err(CompilerError::InvalidSyntax { line: 1, .. })));
 
         remove_test_file(&path);
     }
@@ -187,10 +173,7 @@ rust ownership 1.0
 
         let result = Parser.parse(&builder);
 
-        assert!(matches!(
-            result,
-            Err(CompilerError::MissingInput)
-        ));
+        assert!(matches!(result, Err(CompilerError::MissingInput)));
     }
 
     fn create_test_file(content: &str) -> PathBuf {
@@ -199,13 +182,10 @@ rust ownership 1.0
             .expect("system time should be valid")
             .as_nanos();
 
-        let path = std::env::temp_dir().join(format!(
-            "lxdb-parser-test-{}-{timestamp}.txt",
-            std::process::id(),
-        ));
+        let path = std::env::temp_dir()
+            .join(format!("lxdb-parser-test-{}-{timestamp}.txt", std::process::id(),));
 
-        fs::write(&path, content)
-            .expect("test input file should be created");
+        fs::write(&path, content).expect("test input file should be created");
 
         path
     }
