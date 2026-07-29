@@ -1,0 +1,6 @@
+# Rust semantic dataset
+
+rust -> systems : 0.95
+rust -> memory : 0.87
+memory -> ownership : 1.0
+ownership -> borrow-checker : 0.92

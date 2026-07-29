@@ -35,4 +35,9 @@ impl Builder {
     pub fn build(self) -> Self {
         self
     }
+
+    // Getters
+    pub fn input_path(&self) -> Option<&str> {
+        self.input.as_deref()
+    }
 }
