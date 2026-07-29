@@ -1,3 +1,4 @@
+use crate::FormatError;
 /// Number of bytes occupied by an encoded relation record.
 pub const RELATION_RECORD_SIZE: usize = 16;
 
@@ -43,6 +44,35 @@ impl RelationRecord {
 
         bytes
     }
+
+    pub fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        if bytes.len() != Self::SIZE {
+            return Err(FormatError::UnexpectedRecordSize {
+                record: "relation record",
+                expected: Self::SIZE,
+                found: bytes.len(),
+            });
+        }
+
+        let id =
+            u32::from_le_bytes(bytes[0..4].try_into().expect("relation id must occupy four bytes"));
+
+        let source = u32::from_le_bytes(
+            bytes[4..8].try_into().expect("relation source must occupy four bytes"),
+        );
+
+        let target = u32::from_le_bytes(
+            bytes[8..12].try_into().expect("relation target must occupy four bytes"),
+        );
+
+        let weight_bits = u32::from_le_bytes(
+            bytes[12..16].try_into().expect("relation weight must occupy four bytes"),
+        );
+
+        let weight = f32::from_bits(weight_bits);
+
+        Ok(Self::new(id, source, target, weight))
+    }
 }
 
 #[cfg(test)]
@@ -86,5 +116,38 @@ mod tests {
         assert_eq!(record.source(), 11);
         assert_eq!(record.target(), 13);
         assert_eq!(record.weight(), 1.0);
+    }
+
+    #[test]
+    fn decodes_relation_record() {
+        let original = RelationRecord::new(7, 4, 9, 0.75);
+
+        let encoded = original.encode();
+
+        let decoded =
+            RelationRecord::decode(&encoded).expect("encoded relation record should decode");
+
+        assert_eq!(decoded.id(), original.id());
+        assert_eq!(decoded.source(), original.source());
+        assert_eq!(decoded.target(), original.target());
+
+        assert_eq!(decoded.weight().to_bits(), original.weight().to_bits(),);
+    }
+
+    #[test]
+    fn rejects_invalid_relation_record_size() {
+        let bytes = [0_u8; RelationRecord::SIZE + 1];
+
+        let error =
+            RelationRecord::decode(&bytes).expect_err("oversized relation record should fail");
+
+        assert!(matches!(
+            error,
+            crate::FormatError::UnexpectedRecordSize {
+                record: "relation record",
+                expected: RelationRecord::SIZE,
+                found,
+            } if found == RelationRecord::SIZE + 1
+        ));
     }
 }

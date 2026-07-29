@@ -1,4 +1,4 @@
-use crate::{magic::MAGIC, version::Version};
+use crate::{FormatError, magic::MAGIC, version::Version};
 
 /// Number of bytes occupied by the binary LXDB header.
 pub const HEADER_SIZE: usize = 8;
@@ -32,6 +32,30 @@ impl Header {
         bytes[6..8].copy_from_slice(&self.version.minor().to_le_bytes());
 
         bytes
+    }
+
+    pub fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        if bytes.len() != Self::SIZE {
+            return Err(FormatError::UnexpectedRecordSize {
+                record: "LXDB header",
+                expected: Self::SIZE,
+                found: bytes.len(),
+            });
+        }
+
+        if bytes[0..4] != MAGIC {
+            return Err(FormatError::InvalidHeader);
+        }
+
+        let major = u16::from_le_bytes(
+            bytes[4..6].try_into().expect("major version must occupy two bytes"),
+        );
+
+        let minor = u16::from_le_bytes(
+            bytes[6..8].try_into().expect("minor version must occupy two bytes"),
+        );
+
+        Ok(Self::new(Version::new(major, minor)))
     }
 }
 

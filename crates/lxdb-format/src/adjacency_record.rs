@@ -1,3 +1,5 @@
+use crate::FormatError;
+
 /// Number of bytes occupied by an encoded adjacency record.
 pub const ADJACENCY_RECORD_SIZE: usize = 16;
 
@@ -39,6 +41,26 @@ impl AdjacencyRecord {
         // bytes[12..16] remain reserved and must be zero.
 
         bytes
+    }
+
+    pub fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        if bytes.len() != Self::SIZE {
+            return Err(FormatError::UnexpectedRecordSize {
+                record: "adjacency record",
+                expected: Self::SIZE,
+                found: bytes.len(),
+            });
+        }
+
+        let offset = u64::from_le_bytes(
+            bytes[0..8].try_into().expect("adjacency offset must occupy eight bytes"),
+        );
+
+        let count = u32::from_le_bytes(
+            bytes[8..12].try_into().expect("adjacency count must occupy four bytes"),
+        );
+
+        Ok(Self::new(offset, count))
     }
 }
 

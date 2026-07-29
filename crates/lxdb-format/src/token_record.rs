@@ -1,3 +1,4 @@
+use crate::FormatError;
 /// Number of bytes occupied by an encoded token record.
 pub const TOKEN_RECORD_SIZE: usize = 24;
 
@@ -57,6 +58,29 @@ impl TokenRecord {
 
         bytes
     }
+
+    pub fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        if bytes.len() != Self::SIZE {
+            return Err(FormatError::UnexpectedRecordSize {
+                record: "token record",
+                expected: Self::SIZE,
+                found: bytes.len(),
+            });
+        }
+
+        let id =
+            u32::from_le_bytes(bytes[0..4].try_into().expect("token id must occupy four bytes"));
+
+        let offset = u64::from_le_bytes(
+            bytes[8..16].try_into().expect("token string offset must occupy eight bytes"),
+        );
+
+        let length = u32::from_le_bytes(
+            bytes[16..20].try_into().expect("token string length must occupy four bytes"),
+        );
+
+        Ok(Self::new(id, offset, length))
+    }
 }
 
 #[cfg(test)]
@@ -109,5 +133,32 @@ mod tests {
         assert_eq!(record.id(), 7);
         assert_eq!(record.offset(), 100);
         assert_eq!(record.length(), 12);
+    }
+
+    #[test]
+    fn decodes_token_record() {
+        let original = TokenRecord::new(42, 8_589_934_592, 128);
+
+        let encoded = original.encode();
+
+        let decoded = TokenRecord::decode(&encoded).expect("encoded token record should decode");
+
+        assert_eq!(decoded, original);
+    }
+
+    #[test]
+    fn rejects_invalid_token_record_size() {
+        let bytes = [0_u8; TokenRecord::SIZE - 1];
+
+        let error = TokenRecord::decode(&bytes).expect_err("truncated token record should fail");
+
+        assert!(matches!(
+            error,
+            crate::FormatError::UnexpectedRecordSize {
+                record: "token record",
+                expected: TokenRecord::SIZE,
+                found,
+            } if found == TokenRecord::SIZE - 1
+        ));
     }
 }
