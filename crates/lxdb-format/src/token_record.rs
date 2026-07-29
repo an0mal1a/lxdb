@@ -1,4 +1,4 @@
-use crate::FormatError;
+use crate::{BinaryRecord, FormatError};
 /// Number of bytes occupied by an encoded token record.
 pub const TOKEN_RECORD_SIZE: usize = 24;
 
@@ -80,6 +80,14 @@ impl TokenRecord {
         );
 
         Ok(Self::new(id, offset, length))
+    }
+}
+
+impl BinaryRecord for TokenRecord {
+    const SIZE: usize = TokenRecord::SIZE;
+
+    fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        TokenRecord::decode(bytes)
     }
 }
 

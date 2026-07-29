@@ -1,6 +1,8 @@
+use lxdb_format::{AdjacencyRecord, RelationRecord, TokenRecord};
+
 use lxdb_storage::BinaryDataset;
 
-use crate::{AdjacencyRecordIter, RelationRecordIter, TokenRecordIter};
+use crate::{AdjacencyRecordIter, RecordIter, RelationRecordIter, TokenRecordIter};
 
 pub trait BinaryDatasetExt {
     fn tokens(&self) -> TokenRecordIter<'_>;
@@ -12,14 +14,14 @@ pub trait BinaryDatasetExt {
 
 impl BinaryDatasetExt for BinaryDataset {
     fn tokens(&self) -> TokenRecordIter<'_> {
-        TokenRecordIter::new(self)
+        RecordIter::<TokenRecord>::new(self.token_records())
     }
 
     fn relations(&self) -> RelationRecordIter<'_> {
-        RelationRecordIter::new(self)
+        RecordIter::<RelationRecord>::new(self.relation_records())
     }
 
     fn adjacency(&self) -> AdjacencyRecordIter<'_> {
-        AdjacencyRecordIter::new(self)
+        RecordIter::<AdjacencyRecord>::new(self.adjacency_records())
     }
 }

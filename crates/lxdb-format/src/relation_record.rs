@@ -1,4 +1,4 @@
-use crate::FormatError;
+use crate::{BinaryRecord, FormatError};
 /// Number of bytes occupied by an encoded relation record.
 pub const RELATION_RECORD_SIZE: usize = 16;
 
@@ -72,6 +72,14 @@ impl RelationRecord {
         let weight = f32::from_bits(weight_bits);
 
         Ok(Self::new(id, source, target, weight))
+    }
+}
+
+impl BinaryRecord for RelationRecord {
+    const SIZE: usize = RelationRecord::SIZE;
+
+    fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        RelationRecord::decode(bytes)
     }
 }
 

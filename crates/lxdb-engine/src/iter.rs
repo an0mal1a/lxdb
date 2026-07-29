@@ -1,30 +1,42 @@
-use lxdb_format::{AdjacencyRecord, FormatError, RelationRecord, TokenRecord};
+use std::{iter::FusedIterator, marker::PhantomData};
 
-use lxdb_storage::BinaryDataset;
+use lxdb_format::{AdjacencyRecord, BinaryRecord, FormatError, RelationRecord, TokenRecord};
 
-#[derive(Debug)]
-pub struct TokenRecordIter<'a> {
+/// Iterates over fixed-size binary records without allocating a collection.
+#[derive(Debug, Clone)]
+pub struct RecordIter<'a, T> {
     bytes: &'a [u8],
     cursor: usize,
+    marker: PhantomData<T>,
 }
 
-impl<'a> TokenRecordIter<'a> {
-    pub fn new(dataset: &'a BinaryDataset) -> Self {
-        Self { bytes: dataset.token_records(), cursor: 0 }
+impl<'a, T> RecordIter<'a, T>
+where
+    T: BinaryRecord,
+{
+    pub(crate) const fn new(bytes: &'a [u8]) -> Self {
+        Self { bytes, cursor: 0, marker: PhantomData }
+    }
+
+    fn remaining(&self) -> usize {
+        (self.bytes.len() - self.cursor) / T::SIZE
     }
 }
 
-impl Iterator for TokenRecordIter<'_> {
-    type Item = Result<TokenRecord, FormatError>;
+impl<T> Iterator for RecordIter<'_, T>
+where
+    T: BinaryRecord,
+{
+    type Item = Result<T, FormatError>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.cursor >= self.bytes.len() {
             return None;
         }
 
-        let end = self.cursor + TokenRecord::SIZE;
+        let end = self.cursor + T::SIZE;
 
-        let record = TokenRecord::decode(&self.bytes[self.cursor..end]);
+        let record = T::decode(&self.bytes[self.cursor..end]);
 
         self.cursor = end;
 
@@ -32,86 +44,95 @@ impl Iterator for TokenRecordIter<'_> {
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = (self.bytes.len() - self.cursor) / TokenRecord::SIZE;
+        let remaining = self.remaining();
 
         (remaining, Some(remaining))
     }
 }
 
-impl ExactSizeIterator for TokenRecordIter<'_> {}
-
-#[derive(Debug)]
-pub struct RelationRecordIter<'a> {
-    bytes: &'a [u8],
-    cursor: usize,
-}
-
-impl<'a> RelationRecordIter<'a> {
-    pub fn new(dataset: &'a BinaryDataset) -> Self {
-        Self { bytes: dataset.relation_records(), cursor: 0 }
+impl<T> ExactSizeIterator for RecordIter<'_, T>
+where
+    T: BinaryRecord,
+{
+    fn len(&self) -> usize {
+        self.remaining()
     }
 }
 
-impl Iterator for RelationRecordIter<'_> {
-    type Item = Result<RelationRecord, FormatError>;
+impl<T> FusedIterator for RecordIter<'_, T> where T: BinaryRecord {}
 
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor >= self.bytes.len() {
-            return None;
-        }
+pub type TokenRecordIter<'a> = RecordIter<'a, TokenRecord>;
 
-        let end = self.cursor + RelationRecord::SIZE;
+pub type RelationRecordIter<'a> = RecordIter<'a, RelationRecord>;
 
-        let record = RelationRecord::decode(&self.bytes[self.cursor..end]);
+pub type AdjacencyRecordIter<'a> = RecordIter<'a, AdjacencyRecord>;
 
-        self.cursor = end;
+#[cfg(test)]
+mod tests {
+    use lxdb_format::{RelationRecord, TokenRecord};
 
-        Some(record)
+    use super::RecordIter;
+
+    #[test]
+    fn iterates_over_token_records() {
+        let first = TokenRecord::new(0, 0, 4);
+
+        let second = TokenRecord::new(1, 4, 8);
+
+        let mut bytes = Vec::new();
+
+        bytes.extend_from_slice(&first.encode());
+        bytes.extend_from_slice(&second.encode());
+
+        let mut records = RecordIter::<TokenRecord>::new(&bytes);
+
+        assert_eq!(records.len(), 2);
+
+        let decoded_first =
+            records.next().expect("first record should exist").expect("first record should decode");
+
+        assert_eq!(decoded_first, first);
+        assert_eq!(records.len(), 1);
+
+        let decoded_second = records
+            .next()
+            .expect("second record should exist")
+            .expect("second record should decode");
+
+        assert_eq!(decoded_second, second);
+        assert_eq!(records.len(), 0);
+        assert!(records.next().is_none());
+        assert!(records.next().is_none());
     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = (self.bytes.len() - self.cursor) / RelationRecord::SIZE;
+    #[test]
+    fn uses_the_same_iterator_for_relation_records() {
+        let relation = RelationRecord::new(7, 2, 5, 0.75);
 
-        (remaining, Some(remaining))
+        let bytes = relation.encode();
+
+        let mut records = RecordIter::<RelationRecord>::new(&bytes);
+
+        let decoded = records
+            .next()
+            .expect("relation record should exist")
+            .expect("relation record should decode");
+
+        assert_eq!(decoded.id(), relation.id());
+        assert_eq!(decoded.source(), relation.source());
+        assert_eq!(decoded.target(), relation.target());
+
+        assert_eq!(decoded.weight().to_bits(), relation.weight().to_bits(),);
+
+        assert!(records.next().is_none());
+    }
+
+    #[test]
+    fn empty_record_iterator_is_fused() {
+        let mut records = RecordIter::<TokenRecord>::new(&[]);
+
+        assert_eq!(records.len(), 0);
+        assert!(records.next().is_none());
+        assert!(records.next().is_none());
     }
 }
-
-impl ExactSizeIterator for RelationRecordIter<'_> {}
-
-#[derive(Debug)]
-pub struct AdjacencyRecordIter<'a> {
-    bytes: &'a [u8],
-    cursor: usize,
-}
-
-impl<'a> AdjacencyRecordIter<'a> {
-    pub fn new(dataset: &'a BinaryDataset) -> Self {
-        Self { bytes: dataset.adjacency_records(), cursor: 0 }
-    }
-}
-
-impl Iterator for AdjacencyRecordIter<'_> {
-    type Item = Result<AdjacencyRecord, FormatError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor >= self.bytes.len() {
-            return None;
-        }
-
-        let end = self.cursor + AdjacencyRecord::SIZE;
-
-        let record = AdjacencyRecord::decode(&self.bytes[self.cursor..end]);
-
-        self.cursor = end;
-
-        Some(record)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = (self.bytes.len() - self.cursor) / AdjacencyRecord::SIZE;
-
-        (remaining, Some(remaining))
-    }
-}
-
-impl ExactSizeIterator for AdjacencyRecordIter<'_> {}

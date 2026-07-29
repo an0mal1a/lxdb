@@ -7,10 +7,12 @@ pub mod section_header;
 pub mod version;
 
 pub mod adjacency_record;
+pub mod binary_record;
 pub mod relation_record;
 pub mod token_record;
 
 pub use adjacency_record::{ADJACENCY_RECORD_SIZE, AdjacencyRecord};
+pub use binary_record::BinaryRecord;
 pub use error::FormatError;
 pub use header::{HEADER_SIZE, Header};
 pub use magic::MAGIC;

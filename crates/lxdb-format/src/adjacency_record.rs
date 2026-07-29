@@ -1,5 +1,4 @@
-use crate::FormatError;
-
+use crate::{BinaryRecord, FormatError};
 /// Number of bytes occupied by an encoded adjacency record.
 pub const ADJACENCY_RECORD_SIZE: usize = 16;
 
@@ -61,6 +60,14 @@ impl AdjacencyRecord {
         );
 
         Ok(Self::new(offset, count))
+    }
+}
+
+impl BinaryRecord for AdjacencyRecord {
+    const SIZE: usize = AdjacencyRecord::SIZE;
+
+    fn decode(bytes: &[u8]) -> Result<Self, FormatError> {
+        AdjacencyRecord::decode(bytes)
     }
 }
 

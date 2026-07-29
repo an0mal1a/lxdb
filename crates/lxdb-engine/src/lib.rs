@@ -3,4 +3,4 @@ mod iter;
 
 pub use dataset_ext::BinaryDatasetExt;
 
-pub use iter::{AdjacencyRecordIter, RelationRecordIter, TokenRecordIter};
+pub use iter::{AdjacencyRecordIter, RecordIter, RelationRecordIter, TokenRecordIter};
