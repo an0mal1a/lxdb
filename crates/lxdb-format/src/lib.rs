@@ -11,4 +11,6 @@ pub mod token_record;
 
 pub use header::{HEADER_SIZE, Header};
 pub use magic::MAGIC;
+pub use section::Section;
+pub use section_header::{SECTION_HEADER_SIZE, SectionHeader};
 pub use version::Version;

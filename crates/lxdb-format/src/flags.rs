@@ -1,11 +1,11 @@
-/// Section flags.
-pub mod flags {
-    /// Payload is compressed.
-    pub const COMPRESSED: u16 = 1 << 0;
+/// Section payload is compressed.
+pub const COMPRESSED: u8 = 1 << 0;
 
-    /// Payload is encrypted.
-    pub const ENCRYPTED: u16 = 1 << 1;
+/// Section payload is encrypted.
+pub const ENCRYPTED: u8 = 1 << 1;
 
-    /// Payload is optional.
-    pub const OPTIONAL: u16 = 1 << 2;
-}
+/// Section may be ignored by readers that do not support it.
+pub const OPTIONAL: u8 = 1 << 2;
+
+/// No section flags are enabled.
+pub const NONE: u8 = 0;
