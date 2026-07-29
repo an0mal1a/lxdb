@@ -1,3 +1,4 @@
+pub mod traversal;
 pub mod storage;
 pub mod dataset;
 pub mod graph;
