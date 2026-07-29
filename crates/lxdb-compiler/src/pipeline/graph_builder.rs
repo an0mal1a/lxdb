@@ -86,3 +86,81 @@ fn build_adjacency(token_count: usize, relations: &[Relation]) -> AdjacencyList 
 
     AdjacencyList::new(entries)
 }
+
+#[cfg(test)]
+mod tests {
+    use lxdb_core::{ids::TokenId, traversal::GraphTraversal};
+
+    use super::GraphBuilder;
+    use crate::{
+        model::{RawRelation, RawToken},
+        pipeline::parser::ParseResult,
+    };
+
+    #[test]
+    fn builds_tokens_relations_and_adjacency() {
+        let input = ParseResult {
+            tokens: vec![
+                RawToken { text: "rust".to_owned() },
+                RawToken { text: "systems".to_owned() },
+                RawToken { text: "memory".to_owned() },
+            ],
+            relations: vec![
+                RawRelation {
+                    source: "rust".to_owned(),
+                    target: "systems".to_owned(),
+                    weight: 0.9,
+                },
+                RawRelation { source: "rust".to_owned(), target: "memory".to_owned(), weight: 0.8 },
+                RawRelation {
+                    source: "systems".to_owned(),
+                    target: "memory".to_owned(),
+                    weight: 0.7,
+                },
+            ],
+        };
+
+        let graph = GraphBuilder.build(input).expect("graph construction should succeed");
+
+        assert!(graph.contains(TokenId::new(0)));
+        assert!(graph.contains(TokenId::new(1)));
+        assert!(graph.contains(TokenId::new(2)));
+        assert!(!graph.contains(TokenId::new(3)));
+
+        assert_eq!(graph.outgoing(TokenId::new(0)).len(), 2);
+        assert_eq!(graph.outgoing(TokenId::new(1)).len(), 1);
+        assert!(graph.outgoing(TokenId::new(2)).is_empty());
+        assert!(graph.outgoing(TokenId::new(99)).is_empty());
+    }
+
+    #[test]
+    fn rejects_relations_with_unknown_tokens() {
+        let input = ParseResult {
+            tokens: vec![RawToken { text: "rust".to_owned() }],
+            relations: vec![RawRelation {
+                source: "rust".to_owned(),
+                target: "unknown".to_owned(),
+                weight: 0.5,
+            }],
+        };
+
+        let result = GraphBuilder.build(input);
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn rejects_duplicate_tokens() {
+        let input = ParseResult {
+            tokens: vec![
+                RawToken { text: "rust".to_owned() },
+                RawToken { text: "rust".to_owned() },
+            ],
+            relations: vec![],
+        };
+
+        let result = GraphBuilder.build(input);
+
+        assert!(result.is_err());
+    }
+}
