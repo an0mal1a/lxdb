@@ -9,26 +9,54 @@ pub enum EngineError {
     TokenStringOutOfBounds { token_id: u32, offset: u64, length: u32, table_length: usize },
 
     InvalidTokenUtf8 { token_id: u32, source: Utf8Error },
+
+    MissingAdjacency { token_id: u32, adjacency_count: usize },
+
+    RelationRangeOutOfBounds { token_id: u32, offset: u64, count: u32, relation_count: usize },
 }
 
 impl fmt::Display for EngineError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Format(error) => {
-                write!(formatter, "failed to decode binary record: {error}")
+                write!(formatter, "failed to decode binary record: {error}",)
             }
 
             Self::TokenStringOutOfBounds { token_id, offset, length, table_length } => {
                 write!(
                     formatter,
                     "token {token_id} references string range \
-                     {offset}..{} outside a table of {table_length} bytes",
+                     {offset}..{} outside a table of \
+                     {table_length} bytes",
                     offset.saturating_add(u64::from(*length)),
                 )
             }
 
             Self::InvalidTokenUtf8 { token_id, source } => {
-                write!(formatter, "token {token_id} contains invalid UTF-8: {source}",)
+                write!(
+                    formatter,
+                    "token {token_id} contains invalid UTF-8: \
+                     {source}",
+                )
+            }
+
+            Self::MissingAdjacency { token_id, adjacency_count } => {
+                write!(
+                    formatter,
+                    "token {token_id} has no adjacency record; \
+                     dataset contains {adjacency_count} adjacency \
+                     records",
+                )
+            }
+
+            Self::RelationRangeOutOfBounds { token_id, offset, count, relation_count } => {
+                write!(
+                    formatter,
+                    "token {token_id} references relation range \
+                     {offset}..{} outside a relation table \
+                     containing {relation_count} records",
+                    offset.saturating_add(u64::from(*count)),
+                )
             }
         }
     }
@@ -41,7 +69,9 @@ impl Error for EngineError {
 
             Self::InvalidTokenUtf8 { source, .. } => Some(source),
 
-            Self::TokenStringOutOfBounds { .. } => None,
+            Self::TokenStringOutOfBounds { .. }
+            | Self::MissingAdjacency { .. }
+            | Self::RelationRangeOutOfBounds { .. } => None,
         }
     }
 }

@@ -1,6 +1,7 @@
 mod dataset_ext;
 mod error;
 mod iter;
+mod relation;
 mod token;
 
 pub use dataset_ext::BinaryDatasetExt;
