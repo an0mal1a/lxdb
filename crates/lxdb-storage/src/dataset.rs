@@ -1,5 +1,5 @@
 use crate::StorageError;
-use lxdb_format::{ADJACENCY_RECORD_SIZE, RELATION_RECORD_SIZE, TOKEN_RECORD_SIZE};
+use lxdb_format::{ADJACENCY_RECORD_SIZE, RELATION_RECORD_SIZE, TOKEN_RECORD_SIZE, Version};
 use std::ops::Range;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -29,6 +29,7 @@ impl SectionRange {
 #[derive(Debug)]
 pub struct BinaryDataset {
     bytes: Box<[u8]>,
+    version: Version,
 
     token_records: SectionRange,
     token_string_table: SectionRange,
@@ -41,6 +42,7 @@ pub struct BinaryDataset {
 impl BinaryDataset {
     pub(crate) fn new(
         bytes: Box<[u8]>,
+        version: Version,
         token_records: SectionRange,
         token_string_table: SectionRange,
         relation_records: SectionRange,
@@ -67,6 +69,7 @@ impl BinaryDataset {
 
         Ok(Self {
             bytes,
+            version,
             token_records,
             token_string_table,
             relation_records,
@@ -77,6 +80,16 @@ impl BinaryDataset {
 
     pub fn bytes(&self) -> &[u8] {
         &self.bytes
+    }
+
+    /// Version of the binary format used by this dataset.
+    pub const fn version(&self) -> Version {
+        self.version
+    }
+
+    /// Total number of bytes in the encoded dataset.
+    pub fn file_size(&self) -> usize {
+        self.bytes.len()
     }
 
     pub fn token_records(&self) -> &[u8] {
@@ -116,7 +129,7 @@ impl BinaryDataset {
         length: usize,
         record_size: usize,
     ) -> Result<(), StorageError> {
-        if length % record_size != 0 {
+        if !length.is_multiple_of(record_size) {
             return Err(StorageError::InvalidSectionLength {
                 section_type: section.as_u8(),
                 length,

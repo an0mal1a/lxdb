@@ -1,6 +1,6 @@
 use std::{fs, path::Path};
 
-use lxdb_format::{Header, Section, SectionHeader, flags};
+use lxdb_format::{Header, Section, SectionHeader, Version, flags};
 
 use crate::{BinaryDataset, SectionRange, StorageError};
 
@@ -33,7 +33,7 @@ impl DatasetReader {
     }
 
     pub fn read_boxed(&self, bytes: Box<[u8]>) -> Result<BinaryDataset, StorageError> {
-        Self::validate_header(&bytes)?;
+        let version = Self::validate_header(&bytes)?;
 
         let sections = Self::locate_sections(&bytes)?;
 
@@ -48,6 +48,7 @@ impl DatasetReader {
 
         BinaryDataset::new(
             bytes,
+            version,
             token_records,
             token_string_table,
             relation_records,
@@ -56,18 +57,19 @@ impl DatasetReader {
         )
     }
 
-    fn validate_header(bytes: &[u8]) -> Result<(), StorageError> {
+    fn validate_header(bytes: &[u8]) -> Result<Version, StorageError> {
         if bytes.len() < Header::SIZE {
             return Err(StorageError::InvalidHeader);
         }
 
-        let expected = Header::current().encode();
+        let header =
+            Header::decode(&bytes[..Header::SIZE]).map_err(|_| StorageError::InvalidHeader)?;
 
-        if bytes[..Header::SIZE] != expected {
+        if header.version() != Header::current().version() {
             return Err(StorageError::InvalidHeader);
         }
 
-        Ok(())
+        Ok(header.version())
     }
 
     fn locate_sections(bytes: &[u8]) -> Result<LocatedSections, StorageError> {
@@ -202,6 +204,8 @@ mod tests {
         assert_eq!(dataset.token_count(), 0);
         assert_eq!(dataset.relation_count(), 0);
         assert_eq!(dataset.adjacency_count(), 0);
+        assert_eq!(dataset.version(), Header::current().version());
+        assert_eq!(dataset.file_size(), empty_dataset_bytes().len());
     }
 
     #[test]
