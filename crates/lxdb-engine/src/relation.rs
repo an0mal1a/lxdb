@@ -1,7 +1,104 @@
-use crate::{EngineError, RecordIter, RelationRecordIter};
 use lxdb_core::ids::TokenId;
 use lxdb_format::{AdjacencyRecord, RelationRecord};
 use lxdb_storage::BinaryDataset;
+use std::iter::FusedIterator;
+
+use crate::{BinaryToken, DatasetQuery, EngineError, RecordIter, RelationRecordIter};
+
+/// A relation whose source and target tokens have been resolved directly
+/// against the binary dataset.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BinaryRelation<'a> {
+    id: u32,
+    source: BinaryToken<'a>,
+    target: BinaryToken<'a>,
+    weight: f32,
+}
+
+impl<'a> BinaryRelation<'a> {
+    pub const fn new(
+        id: u32,
+        source: BinaryToken<'a>,
+        target: BinaryToken<'a>,
+        weight: f32,
+    ) -> Self {
+        Self { id, source, target, weight }
+    }
+
+    pub const fn id(&self) -> u32 {
+        self.id
+    }
+
+    pub const fn source(&self) -> BinaryToken<'a> {
+        self.source
+    }
+
+    pub const fn target(&self) -> BinaryToken<'a> {
+        self.target
+    }
+
+    pub const fn weight(&self) -> f32 {
+        self.weight
+    }
+}
+
+/// Lazily resolves relation records into high-level relation views.
+#[derive(Debug, Clone)]
+pub struct BinaryRelationIter<'a> {
+    dataset: &'a BinaryDataset,
+    records: RelationRecordIter<'a>,
+}
+
+impl<'a> BinaryRelationIter<'a> {
+    pub(crate) const fn new(dataset: &'a BinaryDataset, records: RelationRecordIter<'a>) -> Self {
+        Self { dataset, records }
+    }
+
+    fn resolve(&self, record: RelationRecord) -> Result<BinaryRelation<'a>, EngineError> {
+        let query = DatasetQuery::new(self.dataset);
+
+        let source_id = TokenId::new(record.source());
+
+        let source = query.token_by_id(source_id)?.ok_or(EngineError::MissingRelationSource {
+            relation_id: record.id(),
+            token_id: record.source(),
+        })?;
+
+        let target_id = TokenId::new(record.target());
+
+        let target = query.token_by_id(target_id)?.ok_or(EngineError::MissingRelationTarget {
+            relation_id: record.id(),
+            token_id: record.target(),
+        })?;
+
+        Ok(BinaryRelation::new(record.id(), source, target, record.weight()))
+    }
+}
+
+impl<'a> Iterator for BinaryRelationIter<'a> {
+    type Item = Result<BinaryRelation<'a>, EngineError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let record = match self.records.next()? {
+            Ok(record) => record,
+            Err(error) => return Some(Err(error.into())),
+        };
+
+        Some(self.resolve(record))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.records.size_hint()
+    }
+}
+
+impl ExactSizeIterator for BinaryRelationIter<'_> {
+    fn len(&self) -> usize {
+        self.records.len()
+    }
+}
+
+impl FusedIterator for BinaryRelationIter<'_> {}
 
 pub(crate) fn outgoing_relations(
     dataset: &BinaryDataset,

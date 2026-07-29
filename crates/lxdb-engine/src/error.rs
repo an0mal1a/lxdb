@@ -13,6 +13,10 @@ pub enum EngineError {
     MissingAdjacency { token_id: u32, adjacency_count: usize },
 
     RelationRangeOutOfBounds { token_id: u32, offset: u64, count: u32, relation_count: usize },
+
+    MissingRelationSource { relation_id: u32, token_id: u32 },
+
+    MissingRelationTarget { relation_id: u32, token_id: u32 },
 }
 
 impl fmt::Display for EngineError {
@@ -58,6 +62,22 @@ impl fmt::Display for EngineError {
                     offset.saturating_add(u64::from(*count)),
                 )
             }
+
+            Self::MissingRelationSource { relation_id, token_id } => {
+                write!(
+                    formatter,
+                    "relation {relation_id} references missing source token \
+                    {token_id}",
+                )
+            }
+
+            Self::MissingRelationTarget { relation_id, token_id } => {
+                write!(
+                    formatter,
+                    "relation {relation_id} references missing target token \
+                    {token_id}",
+                )
+            }
         }
     }
 }
@@ -71,7 +91,9 @@ impl Error for EngineError {
 
             Self::TokenStringOutOfBounds { .. }
             | Self::MissingAdjacency { .. }
-            | Self::RelationRangeOutOfBounds { .. } => None,
+            | Self::RelationRangeOutOfBounds { .. }
+            | Self::MissingRelationSource { .. }
+            | Self::MissingRelationTarget { .. } => None,
         }
     }
 }
