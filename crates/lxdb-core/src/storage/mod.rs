@@ -1,3 +1,3 @@
 mod adjacency_list;
 
-pub use adjacency_list::AdjacencyList;
+pub use adjacency_list::AdjacencyEntry;
