@@ -4,6 +4,6 @@ mod validator;
 mod writer;
 
 pub use graph_builder::GraphBuilder;
-pub use parser::Parser;
+pub use parser::{ParseResult, Parser};
 pub use validator::Validator;
 pub use writer::Writer;

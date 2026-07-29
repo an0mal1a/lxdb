@@ -1,16 +1,25 @@
-use crate::{builder::Builder, error::CompilerError};
+use lxdb_core::graph::SemanticGraph;
 
-/// Compiles external data sources into LXDB datasets.
+use crate::{
+    builder::Builder,
+    error::CompilerError,
+    pipeline::{GraphBuilder, Parser, Validator},
+};
+
+/// Coordinates the complete LXDB compilation pipeline.
+#[derive(Debug, Default)]
 pub struct Compiler;
 
 impl Compiler {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 
-    pub fn compile(self, builder: Builder) -> Result<(), CompilerError> {
-        let _ = builder;
+    pub fn compile(self, builder: Builder) -> Result<SemanticGraph, CompilerError> {
+        let parsed = Parser.parse(&builder)?;
+        let validated = Validator.validate(parsed)?;
+        let graph = GraphBuilder.build(validated)?;
 
-        todo!()
+        Ok(graph)
     }
 }
