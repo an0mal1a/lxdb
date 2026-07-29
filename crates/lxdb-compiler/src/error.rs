@@ -1,3 +1,7 @@
 /// Compiler errors.
 #[derive(Debug)]
-pub enum CompilerError {}
+pub enum CompilerError {
+    InvalidWeight,
+    EmptyToken,
+    SelfReference,
+}
