@@ -1,3 +1,4 @@
+pub mod section_header;
 pub mod version;
 pub mod section;
 pub mod header;
