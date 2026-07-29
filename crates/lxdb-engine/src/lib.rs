@@ -1,14 +1,6 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod dataset_ext;
+mod iter;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub use dataset_ext::BinaryDatasetExt;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use iter::{AdjacencyRecordIter, RelationRecordIter, TokenRecordIter};
