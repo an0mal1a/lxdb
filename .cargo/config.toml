@@ -1,0 +1,11 @@
+[alias]
+
+compiler = "run -p lxdb-compiler"
+
+cli = "run -p lxdb-cli"
+
+engine = "test -p lxdb-engine"
+
+fmt-all = "fmt --all"
+
+check-all = "check --workspace"

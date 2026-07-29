@@ -1,0 +1,9 @@
+target/
+Cargo.lock
+
+apps/web/node_modules
+apps/web/.nuxt
+apps/web/.output
+
+.idea
+.vscode

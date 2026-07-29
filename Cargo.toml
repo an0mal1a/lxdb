@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "crates/lxdb-core",
+    "crates/lxdb-engine",
+    "crates/lxdb-compiler",
+    "crates/lxdb-format",
+    "crates/lxdb-cli"
+]
