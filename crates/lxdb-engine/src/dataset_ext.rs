@@ -1,12 +1,10 @@
 use lxdb_core::ids::TokenId;
-
 use lxdb_format::{AdjacencyRecord, RelationRecord, TokenRecord};
-
 use lxdb_storage::BinaryDataset;
 
 use crate::{
-    AdjacencyRecordIter, BinaryTokenIter, EngineError, RecordIter, RelationRecordIter,
-    TokenRecordIter, relation::outgoing_relations,
+    AdjacencyRecordIter, BinaryTokenIter, DatasetQuery, EngineError, RecordIter,
+    RelationRecordIter, TokenRecordIter, relation::outgoing_relations,
 };
 
 pub trait BinaryDatasetExt {
@@ -19,6 +17,8 @@ pub trait BinaryDatasetExt {
     fn resolved_tokens(&self) -> BinaryTokenIter<'_>;
 
     fn outgoing(&self, token_id: TokenId) -> Result<RelationRecordIter<'_>, EngineError>;
+
+    fn query(&self) -> DatasetQuery<'_>;
 }
 
 impl BinaryDatasetExt for BinaryDataset {
@@ -40,5 +40,9 @@ impl BinaryDatasetExt for BinaryDataset {
 
     fn outgoing(&self, token_id: TokenId) -> Result<RelationRecordIter<'_>, EngineError> {
         outgoing_relations(self, token_id)
+    }
+
+    fn query(&self) -> DatasetQuery<'_> {
+        DatasetQuery::new(self)
     }
 }
