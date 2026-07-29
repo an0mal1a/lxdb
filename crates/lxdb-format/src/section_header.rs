@@ -4,11 +4,20 @@ use crate::section::Section;
 #[derive(Debug, Clone, Copy)]
 pub struct SectionHeader {
     pub section: Section,
+    pub flags: u16,
     pub length: u64,
 }
 
 impl SectionHeader {
-    pub const fn new(section: Section, length: u64) -> Self {
-        Self { section, length }
+    pub const fn new(
+        section: Section,
+        flags: u16,
+        length: u64,
+    ) -> Self {
+        Self {
+            section,
+            flags,
+            length,
+        }
     }
 }
