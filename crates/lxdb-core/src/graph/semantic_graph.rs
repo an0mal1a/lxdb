@@ -1,4 +1,4 @@
-use crate::model::{Relation, Token};
+use crate::{model::{Relation, Token}, storage::AdjacencyList};
 
 /// Immutable semantic graph.
 ///
@@ -9,4 +9,5 @@ use crate::model::{Relation, Token};
 pub struct SemanticGraph {
     pub tokens: Vec<Token>,
     pub relations: Vec<Relation>,
+    pub adjacency: AdjacencyList,
 }
