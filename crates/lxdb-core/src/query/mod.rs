@@ -1,3 +1,3 @@
-mod query;
+mod graph_query;
 
-pub use query::Query;
+pub use graph_query::Query;

@@ -1,3 +1,3 @@
-mod traversal;
+mod graph_traversal;
 
-pub use traversal::GraphTraversal;
+pub use graph_traversal::GraphTraversal;

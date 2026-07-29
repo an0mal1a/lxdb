@@ -1,3 +1,3 @@
-mod error;
+mod lxdb_error;
 
-pub use error::LxdbError;
+pub use lxdb_error::LxdbError;

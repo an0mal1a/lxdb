@@ -1,5 +1,5 @@
-mod dataset;
+mod dataset_model;
 mod metadata;
 
-pub use dataset::Dataset;
+pub use dataset_model::Dataset;
 pub use metadata::Metadata;
