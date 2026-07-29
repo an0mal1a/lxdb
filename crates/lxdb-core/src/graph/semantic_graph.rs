@@ -17,6 +17,16 @@ pub struct SemanticGraph {
     pub adjacency: AdjacencyList,
 }
 
+impl SemanticGraph {
+    pub fn tokens(&self) -> &[Token] {
+        &self.tokens
+    }
+
+    pub fn relations(&self) -> &[Relation] {
+        &self.relations
+    }
+}
+
 impl GraphTraversal for SemanticGraph {
     fn contains(&self, token_id: TokenId) -> bool {
         self.adjacency.contains(token_id)

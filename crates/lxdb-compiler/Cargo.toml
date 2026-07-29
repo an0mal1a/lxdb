@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 lxdb-core = { path = "../lxdb-core" }
+lxdb-format = { path = "../lxdb-format" }
