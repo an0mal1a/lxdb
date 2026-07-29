@@ -12,6 +12,8 @@ pub struct AdjacencyRecord {
 }
 
 impl AdjacencyRecord {
+    pub const SIZE: usize = ADJACENCY_RECORD_SIZE;
+
     pub const fn new(offset: u64, count: u32) -> Self {
         Self { offset, count }
     }

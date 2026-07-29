@@ -13,6 +13,7 @@ pub enum CompilerError {
     DuplicateToken(String),
     UnknownToken(String),
     MissingInput,
+    MissingOutput,
     Io(io::Error),
     InvalidSyntax { line: usize, content: String },
 }
@@ -37,6 +38,9 @@ impl Display for CompilerError {
             }
             Self::MissingInput => {
                 write!(formatter, "no input file was provided")
+            }
+            Self::MissingOutput => {
+                write!(formatter, "no output path specified")
             }
             Self::Io(error) => {
                 write!(formatter, "input/output error: {error}")

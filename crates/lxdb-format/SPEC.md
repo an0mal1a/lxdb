@@ -46,11 +46,19 @@ Contains dataset information such as:
 
 ---
 
-## Token Records
+## Token records
 
-Array of `TokenRecord`.
+Each token record occupies 24 bytes.
 
-Each record points into the Token String Table.
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 4 | Token ID |
+| 4 | 4 | Reserved |
+| 8 | 8 | String table offset |
+| 16 | 4 | String length |
+| 20 | 4 | Reserved |
+
+The string table offset is relative to the beginning of the `TokenStringTable` section payload.
 
 ---
 

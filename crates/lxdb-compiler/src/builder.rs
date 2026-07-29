@@ -40,4 +40,8 @@ impl Builder {
     pub fn input_path(&self) -> Option<&str> {
         self.input.as_deref()
     }
+
+    pub fn output_path(&self) -> Option<&str> {
+        self.output.as_deref()
+    }
 }

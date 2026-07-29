@@ -10,6 +10,8 @@ pub struct Header {
 }
 
 impl Header {
+    pub const SIZE: usize = HEADER_SIZE;
+
     pub const fn new(version: Version) -> Self {
         Self { version }
     }

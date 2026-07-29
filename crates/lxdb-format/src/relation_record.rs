@@ -11,6 +11,8 @@ pub struct RelationRecord {
 }
 
 impl RelationRecord {
+    pub const SIZE: usize = RELATION_RECORD_SIZE;
+
     pub const fn new(id: u32, source: u32, target: u32, weight: f32) -> Self {
         Self { id, source, target, weight }
     }
