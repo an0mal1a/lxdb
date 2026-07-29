@@ -1,18 +1,29 @@
 /// Number of bytes occupied by an encoded token record.
-pub const TOKEN_RECORD_SIZE: usize = 16;
+pub const TOKEN_RECORD_SIZE: usize = 24;
 
 /// Binary representation of a token.
 ///
-/// The token text itself is stored separately in the token string table.
+/// The text itself is stored separately inside the token string table.
+/// `offset` is relative to the beginning of that section.
+///
+/// Binary layout:
+///
+/// - token id: 4 bytes
+/// - reserved: 4 bytes
+/// - string offset: 8 bytes
+/// - string length: 4 bytes
+/// - reserved: 4 bytes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TokenRecord {
     id: u32,
-    offset: u32,
+    offset: u64,
     length: u32,
 }
 
 impl TokenRecord {
-    pub const fn new(id: u32, offset: u32, length: u32) -> Self {
+    pub const SIZE: usize = TOKEN_RECORD_SIZE;
+
+    pub const fn new(id: u32, offset: u64, length: u32) -> Self {
         Self { id, offset, length }
     }
 
@@ -20,7 +31,7 @@ impl TokenRecord {
         self.id
     }
 
-    pub const fn offset(self) -> u32 {
+    pub const fn offset(self) -> u64 {
         self.offset
     }
 
@@ -28,8 +39,8 @@ impl TokenRecord {
         self.length
     }
 
-    pub const fn end(self) -> u32 {
-        self.offset + self.length
+    pub const fn end(self) -> u64 {
+        self.offset + self.length as u64
     }
 
     pub fn encode(self) -> [u8; TOKEN_RECORD_SIZE] {
@@ -37,9 +48,12 @@ impl TokenRecord {
 
         bytes[0..4].copy_from_slice(&self.id.to_le_bytes());
 
-        // bytes[4..8] remain reserved and must be zero.
-        bytes[8..12].copy_from_slice(&self.offset.to_le_bytes());
-        bytes[12..16].copy_from_slice(&self.length.to_le_bytes());
+        // bytes[4..8] are reserved and remain zero.
+
+        bytes[8..16].copy_from_slice(&self.offset.to_le_bytes());
+        bytes[16..20].copy_from_slice(&self.length.to_le_bytes());
+
+        // bytes[20..24] are reserved and remain zero.
 
         bytes
     }
@@ -51,35 +65,49 @@ mod tests {
 
     #[test]
     fn encodes_token_record() {
-        let record = TokenRecord::new(42, 1_024, 7);
+        let record = TokenRecord::new(42, 4_294_967_500, 128);
 
         let bytes = record.encode();
 
         assert_eq!(bytes.len(), TOKEN_RECORD_SIZE);
 
-        assert_eq!(u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3],]), 42);
+        assert_eq!(
+            u32::from_le_bytes(bytes[0..4].try_into().expect("token id must occupy four bytes"),),
+            42,
+        );
 
         assert_eq!(&bytes[4..8], &[0; 4]);
 
-        assert_eq!(u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11],]), 1_024);
+        assert_eq!(
+            u64::from_le_bytes(
+                bytes[8..16].try_into().expect("string offset must occupy eight bytes"),
+            ),
+            4_294_967_500,
+        );
 
-        assert_eq!(u32::from_le_bytes([bytes[12], bytes[13], bytes[14], bytes[15],]), 7);
+        assert_eq!(
+            u32::from_le_bytes(
+                bytes[16..20].try_into().expect("string length must occupy four bytes"),
+            ),
+            128,
+        );
+
+        assert_eq!(&bytes[20..24], &[0; 4]);
     }
 
     #[test]
     fn calculates_string_range_end() {
-        let record = TokenRecord::new(0, 25, 12);
+        let record = TokenRecord::new(0, 500, 25);
 
-        assert_eq!(record.end(), 37);
+        assert_eq!(record.end(), 525);
     }
 
     #[test]
-    fn encodes_empty_token_text() {
-        let record = TokenRecord::new(3, 50, 0);
+    fn exposes_record_fields() {
+        let record = TokenRecord::new(7, 100, 12);
 
-        let bytes = record.encode();
-
-        assert_eq!(&bytes[12..16], &[0; 4]);
-        assert_eq!(record.end(), 50);
+        assert_eq!(record.id(), 7);
+        assert_eq!(record.offset(), 100);
+        assert_eq!(record.length(), 12);
     }
 }
