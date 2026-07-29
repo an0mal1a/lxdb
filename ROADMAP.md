@@ -4,8 +4,8 @@
 
 - [x] Workspace
 - [x] Crates
-- [ ] Documentation
-- [ ] LXDB specification
+- [x] MVP documentation
+- [x] LXDB format specification
 
 ---
 
@@ -13,11 +13,11 @@
 
 Core primitives
 
-- [ ] Token
-- [ ] TokenId
-- [ ] Relation
-- [ ] RelationId
-- [ ] SemanticGraph
+- [x] Token
+- [x] TokenId
+- [x] Relation
+- [x] RelationId
+- [x] SemanticGraph
 
 ---
 
@@ -25,10 +25,10 @@ Core primitives
 
 LXDB format
 
-- [ ] Header
-- [ ] Reader
-- [ ] Writer
-- [ ] Validator
+- [x] Header
+- [x] Reader
+- [x] Writer
+- [x] Structural validation
 
 ---
 
@@ -36,11 +36,12 @@ LXDB format
 
 Compiler
 
+- [x] Relation-source parser
+- [x] Graph generation
+- [x] Binary exporter
 - [ ] Dictionary loader
 - [ ] Embedding generation
-- [ ] Graph generation
 - [ ] Optimizer
-- [ ] Exporter
 
 ---
 
@@ -48,8 +49,8 @@ Compiler
 
 Engine
 
-- [ ] Load database
-- [ ] Search
+- [x] Load database
+- [x] Exact token lookup and outgoing traversal
 - [ ] Similarity
 - [ ] Challenge generation
 

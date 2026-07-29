@@ -18,12 +18,4 @@ Applications consume LXDB.
 
 Applications never modify LXDB.
 
-A compiler produces LXDB snapshots.
-
-Readers consume them.
-
-LXDB is append-only.
-
-A new dataset always produces a new file.
-
-Never an update.
+A compiler produces LXDB snapshots, and readers consume them without modifying their bytes. Creating a new dataset writes a new file; in-place updates are not part of the current format API.
