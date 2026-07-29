@@ -11,6 +11,7 @@ pub mod token_record;
 
 pub use header::{HEADER_SIZE, Header};
 pub use magic::MAGIC;
+pub use relation_record::{RELATION_RECORD_SIZE, RelationRecord};
 pub use section::Section;
 pub use section_header::{SECTION_HEADER_SIZE, SectionHeader};
 pub use token_record::{TOKEN_RECORD_SIZE, TokenRecord};
