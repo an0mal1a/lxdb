@@ -1,8 +1,6 @@
-use std::ops::Range;
-
-use lxdb_format::{ADJACENCY_RECORD_SIZE, RELATION_RECORD_SIZE, TOKEN_RECORD_SIZE};
-
 use crate::StorageError;
+use lxdb_format::{ADJACENCY_RECORD_SIZE, RELATION_RECORD_SIZE, TOKEN_RECORD_SIZE};
+use std::ops::Range;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct SectionRange {
@@ -13,14 +11,6 @@ pub(crate) struct SectionRange {
 impl SectionRange {
     pub(crate) const fn new(start: usize, end: usize) -> Self {
         Self { start, end }
-    }
-
-    pub(crate) const fn start(&self) -> usize {
-        self.start
-    }
-
-    pub(crate) const fn end(&self) -> usize {
-        self.end
     }
 
     pub(crate) const fn len(&self) -> usize {

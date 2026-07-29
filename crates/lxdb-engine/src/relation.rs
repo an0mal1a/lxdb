@@ -1,10 +1,7 @@
-use lxdb_core::ids::TokenId;
-
-use lxdb_format::{AdjacencyRecord, BinaryRecord, RelationRecord};
-
-use lxdb_storage::BinaryDataset;
-
 use crate::{EngineError, RecordIter, RelationRecordIter};
+use lxdb_core::ids::TokenId;
+use lxdb_format::{AdjacencyRecord, RelationRecord};
+use lxdb_storage::BinaryDataset;
 
 pub(crate) fn outgoing_relations(
     dataset: &BinaryDataset,
