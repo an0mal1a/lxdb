@@ -1,0 +1,9 @@
+name = "full"
+include_forms = true
+include_multiword_terms = true
+include_proper_nouns = true
+enable_wordnet = true
+enable_frequency = true
+enable_embeddings = true
+preserve_senses = true
+max_relations_per_token = 96

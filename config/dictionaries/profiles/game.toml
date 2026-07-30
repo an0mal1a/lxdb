@@ -1,0 +1,8 @@
+name = "game"
+include_forms = true
+include_multiword_terms = false
+include_proper_nouns = false
+enable_wordnet = true
+enable_frequency = true
+enable_embeddings = true
+max_relations_per_token = 48

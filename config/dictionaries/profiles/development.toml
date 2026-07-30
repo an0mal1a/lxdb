@@ -1,0 +1,7 @@
+name = "development"
+max_entries = 25000
+include_forms = true
+include_multiword_terms = false
+include_proper_nouns = false
+enable_embeddings = false
+max_relations_per_token = 16

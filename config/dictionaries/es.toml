@@ -1,0 +1,30 @@
+# Spanish lexical dataset policy. Profile files provide the size/retention preset.
+language = "es"
+
+[vocabulary]
+include_forms = true
+include_multiword_terms = false
+include_proper_nouns = false
+include_abbreviations = false
+min_length = 2
+max_length = 48
+
+[sources]
+kaikki = true
+hunspell = true
+wordnet = true
+frequency = true
+embeddings = false
+
+[relations]
+strategy_version = 1
+max_per_token = 48
+include_synonyms = true
+include_antonyms = true
+include_hypernyms = true
+include_hyponyms = true
+include_related = true
+
+[quality]
+minimum_relation_count = 3
+minimum_frequency = 0.0
