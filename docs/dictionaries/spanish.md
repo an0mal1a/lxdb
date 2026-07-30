@@ -9,3 +9,5 @@ lxdb dictionary build es --profile development --source-fixture .\crates\lxdb-di
 lxdb inspect .\target\dictionary-tests\es\dictionary.lxdb
 lxdb query .\target\dictionary-tests\es\casa
 ```
+
+For the large Lexicon-ready build, run `lxdb dictionary build es --profile game --output ..\lexicon\datasets\generated\es`. The first execution downloads Kaikki and Hunspell into the LXDB cache; later builds reuse the snapshots.

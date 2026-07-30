@@ -7,6 +7,7 @@ pub enum DictionaryError {
     InvalidConfiguration { path: PathBuf, message: String },
     MissingSource { source: &'static str, path: PathBuf },
     OfflineCacheMiss { source: &'static str, path: PathBuf },
+    SourceDownloadFailed { source: &'static str, url: &'static str, status: Option<i32> },
     InvalidSource { source: &'static str, path: PathBuf, line: usize, message: String },
     Io(io::Error),
     Compile(lxdb_compiler::error::CompilerError),
@@ -28,6 +29,10 @@ impl fmt::Display for DictionaryError {
             Self::OfflineCacheMiss { source, path } => {
                 write!(f, "offline cache miss for {source}: {}", path.display())
             }
+            Self::SourceDownloadFailed { source, url, status } => match status {
+                Some(status) => write!(f, "{source} download failed ({status}): {url}"),
+                None => write!(f, "could not start {source} download: {url}"),
+            },
             Self::InvalidSource { source, path, line, message } => {
                 write!(f, "invalid {source} source at {}:{}: {message}", path.display(), line)
             }

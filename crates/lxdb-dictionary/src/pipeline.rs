@@ -3,6 +3,7 @@ use std::{
     fmt::Write,
     fs,
     path::{Path, PathBuf},
+    process::Command,
     time::Instant,
 };
 
@@ -24,42 +25,51 @@ pub fn build(options: &BuildOptions) -> Result<BuildReport, DictionaryError> {
     let language = find_language(&options.language)
         .ok_or_else(|| DictionaryError::UnsupportedLanguage(options.language.clone()))?;
     validate_options(options)?;
+    let mut effective_options = options.clone();
     let mut report = BuildReport::default();
     let mut entries = Vec::new();
     let started = Instant::now();
-    let source_root = source_root(options, language.iso_639_1)?;
+    let resolved = resolve_sources(&effective_options, language.iso_639_1)?;
+    effective_options.sources.kaikki = resolved.kaikki.is_some();
+    effective_options.sources.hunspell = resolved.hunspell.is_some();
+    effective_options.sources.wordnet = resolved.wordnet.is_some();
+    effective_options.sources.frequency = resolved.frequency.is_some();
+    // There is no configured local embedding provider in this release.
+    effective_options.sources.embeddings = false;
     let mut invalid = 0;
-    if options.sources.kaikki {
+    if let Some(path) = &resolved.kaikki {
         let timer = Instant::now();
-        let path = source_root.join(format!("kaikki-{}-small.jsonl", language.iso_639_1));
-        report.entries_read +=
-            source::parse_kaikki(&path, language.iso_639_1, "fixture", &mut entries, &mut invalid)?;
+        report.entries_read += source::parse_kaikki(
+            path,
+            language.iso_639_1,
+            resolved.snapshot,
+            &mut entries,
+            &mut invalid,
+            effective_options.effective_limit(),
+        )?;
         report.phases.insert("extract_kaikki".to_owned(), timer.elapsed());
     }
-    if options.sources.hunspell {
+    if let Some(path) = &resolved.hunspell {
         let timer = Instant::now();
-        let path = source_root.join(format!("hunspell-{}-small.dic", language.iso_639_1));
         report.entries_read +=
-            source::parse_hunspell(&path, language.iso_639_1, "fixture", &mut entries)?;
+            source::parse_hunspell(path, language.iso_639_1, resolved.snapshot, &mut entries)?;
         report.phases.insert("extract_hunspell".to_owned(), timer.elapsed());
     }
-    if options.sources.wordnet {
+    if let Some(path) = &resolved.wordnet {
         let timer = Instant::now();
-        let path = source_root.join(format!("wordnet-{}-small.xml", language.iso_639_1));
         report.entries_read +=
-            source::parse_wordnet_lmf(&path, language.iso_639_1, "fixture", &mut entries)?;
+            source::parse_wordnet_lmf(path, language.iso_639_1, resolved.snapshot, &mut entries)?;
         report.phases.insert("extract_wordnet".to_owned(), timer.elapsed());
     }
-    if options.sources.frequency {
+    if let Some(path) = &resolved.frequency {
         let timer = Instant::now();
-        let path = source_root.join(format!("frequency-{}-small.tsv", language.iso_639_1));
-        source::parse_frequency(&path, &mut entries)?;
+        source::parse_frequency(path, &mut entries)?;
         report.phases.insert("extract_frequency".to_owned(), timer.elapsed());
     }
     report.entries_invalid = invalid;
     let timer = Instant::now();
     let mut rejected = Vec::new();
-    entries.retain_mut(|entry| match normalize_and_accept(entry, options) {
+    entries.retain_mut(|entry| match normalize_and_accept(entry, &effective_options) {
         Ok(()) => true,
         Err(reason) => {
             rejected.push((entry.canonical.clone(), reason));
@@ -70,7 +80,7 @@ pub fn build(options: &BuildOptions) -> Result<BuildReport, DictionaryError> {
     report.phases.insert("normalize_filter".to_owned(), timer.elapsed());
     let timer = Instant::now();
     let mut entries = merge(entries, &mut report);
-    if let Some(limit) = options.effective_limit() {
+    if let Some(limit) = effective_options.effective_limit() {
         entries.truncate(limit);
     }
     compute_quality(&mut entries, &mut report);
@@ -80,13 +90,14 @@ pub fn build(options: &BuildOptions) -> Result<BuildReport, DictionaryError> {
     report.surface_forms = entries.iter().map(|entry| entry.forms.len() as u64).sum();
     report.senses = entries.iter().map(|entry| entry.senses.len() as u64).sum();
     let timer = Instant::now();
-    let source_text = render_lx(&entries, options.profile.max_relations_per_token(), &mut report);
+    let source_text =
+        render_lx(&entries, effective_options.profile.max_relations_per_token(), &mut report);
     report.phases.insert("graph".to_owned(), timer.elapsed());
-    fs::create_dir_all(&options.output_dir)?;
-    let lx_path = options.output_dir.join("dictionary.lx");
+    fs::create_dir_all(&effective_options.output_dir)?;
+    let lx_path = effective_options.output_dir.join("dictionary.lx");
     atomic_write(&lx_path, source_text.as_bytes())?;
-    let output = options.output_dir.join("dictionary.lxdb");
-    let temporary = options.output_dir.join("dictionary.lxdb.tmp");
+    let output = effective_options.output_dir.join("dictionary.lxdb");
+    let temporary = effective_options.output_dir.join("dictionary.lxdb.tmp");
     let timer = Instant::now();
     Compiler::new()
         .compile(
@@ -112,28 +123,28 @@ pub fn build(options: &BuildOptions) -> Result<BuildReport, DictionaryError> {
     let dataset_hash = fnv1a64(&fs::read(&output)?);
     let timer = Instant::now();
     atomic_write(
-        &options.output_dir.join("manifest.json"),
-        manifest::render_manifest(language, options, &report, dataset_hash).as_bytes(),
+        &effective_options.output_dir.join("manifest.json"),
+        manifest::render_manifest(language, &effective_options, &report, dataset_hash).as_bytes(),
     )?;
     atomic_write(
-        &options.output_dir.join("build-report.json"),
+        &effective_options.output_dir.join("build-report.json"),
         manifest::render_report(&report).as_bytes(),
     )?;
     atomic_write(
-        &options.output_dir.join("ATTRIBUTION.md"),
-        manifest::render_attribution(options).as_bytes(),
+        &effective_options.output_dir.join("ATTRIBUTION.md"),
+        manifest::render_attribution(&effective_options).as_bytes(),
     )?;
-    if options.emit_rejected {
+    if effective_options.emit_rejected {
         atomic_write(
-            &options.output_dir.join("rejected-entries.jsonl.zst"),
+            &effective_options.output_dir.join("rejected-entries.jsonl.zst"),
             &zstd_raw_frame(render_rejected(&rejected).as_bytes())?,
         )?;
     }
     report.phases.insert("artifacts".to_owned(), timer.elapsed());
     report.phases.insert("total".to_owned(), started.elapsed());
-    update_cache_manifest(language.iso_639_1, options, &source_root)?;
-    if options.emit_source.is_some() || options.keep_intermediate {
-        let destination = options.emit_source.as_ref().unwrap_or(&lx_path);
+    update_cache_manifest(language.iso_639_1, &effective_options, &resolved.root)?;
+    if effective_options.emit_source.is_some() || effective_options.keep_intermediate {
+        let destination = effective_options.emit_source.as_ref().unwrap_or(&lx_path);
         if destination != &lx_path {
             atomic_write(destination, source_text.as_bytes())?;
         }
@@ -146,11 +157,13 @@ pub fn build(options: &BuildOptions) -> Result<BuildReport, DictionaryError> {
 pub fn update(language: &str, cache_dir: &Path) -> Result<PathBuf, DictionaryError> {
     find_language(language)
         .ok_or_else(|| DictionaryError::UnsupportedLanguage(language.to_owned()))?;
-    let directory = cache_language_directory(cache_dir, language);
-    fs::create_dir_all(&directory)?;
-    let path = directory.join("cache-manifest.json");
-    atomic_write(&path, format!("{{\n  \"language\": \"{language}\",\n  \"mode\": \"local-cache\",\n  \"note\": \"Place verified source snapshots in this directory or pass --source-fixture. Network download is intentionally not implicit.\"\n}}\n").as_bytes())?;
-    Ok(path)
+    let mut options = BuildOptions::new(language, PathBuf::from("."));
+    options.profile = crate::DictionaryProfile::Game;
+    options.cache_dir = cache_dir.to_path_buf();
+    options.refresh = true;
+    let resolved = resolve_sources(&options, language)?;
+    update_cache_manifest(language, &options, &resolved.root)?;
+    Ok(resolved.root.join("cache-manifest.json"))
 }
 
 pub fn inspect_manifest(path: &Path) -> Result<String, DictionaryError> {
@@ -165,18 +178,139 @@ pub fn inspect_manifest(path: &Path) -> Result<String, DictionaryError> {
     ))
 }
 
-fn source_root(options: &BuildOptions, language: &str) -> Result<PathBuf, DictionaryError> {
-    if let Some(fixture) = &options.fixture_dir {
-        return Ok(fixture.clone());
+struct ResolvedSources {
+    root: PathBuf,
+    snapshot: &'static str,
+    kaikki: Option<PathBuf>,
+    hunspell: Option<PathBuf>,
+    wordnet: Option<PathBuf>,
+    frequency: Option<PathBuf>,
+}
+
+fn resolve_sources(
+    options: &BuildOptions,
+    language: &str,
+) -> Result<ResolvedSources, DictionaryError> {
+    if let Some(root) = &options.fixture_dir {
+        return Ok(ResolvedSources {
+            root: root.clone(),
+            snapshot: "fixture",
+            kaikki: options
+                .sources
+                .kaikki
+                .then(|| root.join(format!("kaikki-{language}-small.jsonl"))),
+            hunspell: options
+                .sources
+                .hunspell
+                .then(|| root.join(format!("hunspell-{language}-small.dic"))),
+            wordnet: options
+                .sources
+                .wordnet
+                .then(|| root.join(format!("wordnet-{language}-small.xml"))),
+            frequency: options
+                .sources
+                .frequency
+                .then(|| root.join(format!("frequency-{language}-small.tsv"))),
+        });
     }
-    let cached = cache_language_directory(&options.cache_dir, language);
-    if options.offline && !cached.exists() {
-        return Err(DictionaryError::OfflineCacheMiss { source: "dictionary", path: cached });
+
+    let root = cache_language_directory(&options.cache_dir, language);
+    fs::create_dir_all(&root)?;
+    let kaikki = options
+        .sources
+        .kaikki
+        .then(|| ensure_cached_source(&root, language, "kaikki", options))
+        .transpose()?;
+    let hunspell = options
+        .sources
+        .hunspell
+        .then(|| ensure_cached_source(&root, language, "hunspell", options))
+        .transpose()?;
+
+    // WordNet and frequency are optional local enrichments until their snapshot
+    // providers are configured. Kaikki remains sufficient for a large graph.
+    let wordnet_path = root.join(format!("wordnet-{language}.xml"));
+    let frequency_path = root.join(format!("frequency-{language}.tsv"));
+    Ok(ResolvedSources {
+        root,
+        snapshot: "cache",
+        kaikki,
+        hunspell,
+        wordnet: options.sources.wordnet.then_some(wordnet_path).filter(|path| path.exists()),
+        frequency: options.sources.frequency.then_some(frequency_path).filter(|path| path.exists()),
+    })
+}
+
+fn ensure_cached_source(
+    root: &Path,
+    language: &str,
+    source: &'static str,
+    options: &BuildOptions,
+) -> Result<PathBuf, DictionaryError> {
+    let filename = match source {
+        "kaikki" => format!("kaikki-{language}.jsonl"),
+        "hunspell" => format!("hunspell-{language}.dic"),
+        _ => unreachable!("only known source names reach ensure_cached_source"),
+    };
+    let target = root.join(filename);
+    if target.exists() && !options.refresh {
+        return Ok(target);
     }
-    if cached.exists() {
-        return Ok(cached);
+    if options.offline {
+        return Err(DictionaryError::OfflineCacheMiss { source, path: target });
     }
-    Err(DictionaryError::MissingSource { source: "dictionary", path: cached })
+    let url = source_url(language, source)
+        .ok_or_else(|| DictionaryError::MissingSource { source, path: target.clone() })?;
+    download_to_cache(source, url, &target)?;
+    Ok(target)
+}
+
+fn source_url(language: &str, source: &str) -> Option<&'static str> {
+    match (language, source) {
+        ("es", "kaikki") => {
+            Some("https://kaikki.org/dictionary/Spanish/kaikki.org-dictionary-Spanish.jsonl")
+        }
+        ("es", "hunspell") => {
+            Some("https://cgit.freedesktop.org/libreoffice/dictionaries/plain/es/es_ES.dic")
+        }
+        _ => None,
+    }
+}
+
+fn download_to_cache(
+    source: &'static str,
+    url: &'static str,
+    target: &Path,
+) -> Result<(), DictionaryError> {
+    let temporary = target.with_extension(format!(
+        "{}.download",
+        target.extension().and_then(|value| value.to_str()).unwrap_or("tmp")
+    ));
+    let status = Command::new("curl")
+        .args([
+            "--fail",
+            "--location",
+            "--silent",
+            "--show-error",
+            "--retry",
+            "3",
+            "--connect-timeout",
+            "30",
+            "--output",
+        ])
+        .arg(&temporary)
+        .arg(url)
+        .status()
+        .map_err(|_| DictionaryError::SourceDownloadFailed { source, url, status: None })?;
+    if !status.success() {
+        let _ = fs::remove_file(&temporary);
+        return Err(DictionaryError::SourceDownloadFailed { source, url, status: status.code() });
+    }
+    if target.exists() {
+        fs::remove_file(target)?;
+    }
+    fs::rename(temporary, target)?;
+    Ok(())
 }
 fn validate_options(options: &BuildOptions) -> Result<(), DictionaryError> {
     if options.limit == Some(0) {

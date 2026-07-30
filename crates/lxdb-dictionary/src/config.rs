@@ -26,7 +26,10 @@ impl DictionaryProfile {
     pub const fn max_entries(self) -> Option<usize> {
         match self {
             Self::Development => Some(25_000),
-            Self::Game | Self::Full => None,
+            // This is intentionally large enough for a real game vocabulary,
+            // while bounding the current in-memory compiler implementation.
+            Self::Game => Some(200_000),
+            Self::Full => None,
         }
     }
     pub const fn max_relations_per_token(self) -> usize {

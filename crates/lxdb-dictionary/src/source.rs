@@ -18,6 +18,7 @@ pub fn parse_kaikki(
     snapshot: &str,
     entries: &mut Vec<LexicalEntry>,
     invalid: &mut u64,
+    max_entries: Option<usize>,
 ) -> Result<u64, DictionaryError> {
     let file = File::open(path).map_err(|_| DictionaryError::MissingSource {
         source: "Kaikki",
@@ -25,6 +26,9 @@ pub fn parse_kaikki(
     })?;
     let mut read = 0;
     for (index, line) in BufReader::new(file).lines().enumerate() {
+        if max_entries.is_some_and(|limit| entries.len() >= limit) {
+            break;
+        }
         let line_number = index + 1;
         let line = line?;
         if line.trim().is_empty() {

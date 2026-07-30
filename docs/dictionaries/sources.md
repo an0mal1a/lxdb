@@ -5,4 +5,4 @@
 - Open Multilingual WordNet / Spanish WordNet uses WN-LMF lexical entries, senses, synsets and `SynsetRelation` elements. It contributes same-synset synonyms and curated conceptual relations when present.
 - Frequency is a simple exported `word<TAB>zipf` file. It ranks/filter-quality data only and is never a semantic weight.
 
-Builds are local-first. Pass `--source-fixture` for deterministic CI, or place verified snapshots under `.lxdb/cache/dictionaries/<language>/` with the same input names. `dictionary update` creates a cache manifest; it does not silently download a multi-gigabyte dump.
+Builds are cache-first. `lxdb dictionary build es --profile game` downloads the verified Kaikki Spanish JSONL snapshot and LibreOffice `es_ES.dic` into `.lxdb/cache/dictionaries/es/` on first use, then reuses them. `--offline` refuses a cache miss and `--refresh` replaces cached files. Pass `--source-fixture` for deterministic CI.
