@@ -1,40 +1,43 @@
 use std::path::Path;
 
-use lxdb_dictionary::{LANGUAGES, build, update};
+use lxdb_dictionary::{BuildOptions, LANGUAGES, build, inspect_manifest, update};
 
 use crate::error::CliError;
 
 pub fn execute_dictionary_languages() -> Result<(), CliError> {
-    for (code, name) in LANGUAGES {
-        println!("{code}\t{name}");
+    for language in LANGUAGES {
+        println!("{}\t{}\t{}", language.iso_639_1, language.display_name, language.iso_639_3);
     }
     Ok(())
 }
 
-pub fn execute_dictionary_build(
-    language: &str,
-    source: Option<&Path>,
-    output: &Path,
-    limit: Option<usize>,
-) -> Result<(), CliError> {
-    if let Some(limit) = limit {
-        if limit == 0 {
-            return Err(CliError::Message("--limit must be greater than zero".to_owned()));
-        }
-    }
-    let report =
-        build(language, source, output).map_err(|error| CliError::Message(error.to_string()))?;
+pub fn execute_dictionary_build(options: BuildOptions) -> Result<(), CliError> {
+    let language = options.language.clone();
+    let output = options.output_dir.clone();
+    let profile = options.profile.name();
+    let report = build(&options).map_err(|error| CliError::Message(error.to_string()))?;
     println!(
-        "Built {language} dictionary: {} tokens, {} relations",
-        report.tokens, report.relations
+        "LXDB dictionary build\nLanguage: {}\nProfile: {profile}\nEntries read: {}\nEntries accepted: {}\nUnique lemmas: {}\nSurface forms: {}\nRelations: {}\nRejected: {}\nOutput: {}",
+        language,
+        report.entries_read,
+        report.entries_accepted,
+        report.unique_lemmas,
+        report.surface_forms,
+        report.relations,
+        report.entries_rejected,
+        output.join("dictionary.lxdb").display(),
     );
-    println!("Source: {}", report.source.display());
-    println!("Output: {}", report.output.display());
     Ok(())
 }
 
-pub fn execute_dictionary_update(language: &str) -> Result<(), CliError> {
-    let manifest = update(language).map_err(|error| CliError::Message(error.to_string()))?;
+pub fn execute_dictionary_update(language: &str, cache_dir: &Path) -> Result<(), CliError> {
+    let manifest =
+        update(language, cache_dir).map_err(|error| CliError::Message(error.to_string()))?;
     println!("Updated local dictionary manifest: {}", manifest.display());
+    Ok(())
+}
+
+pub fn execute_dictionary_inspect(manifest: &Path) -> Result<(), CliError> {
+    print!("{}", inspect_manifest(manifest).map_err(|error| CliError::Message(error.to_string()))?);
     Ok(())
 }

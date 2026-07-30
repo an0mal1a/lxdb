@@ -1,0 +1,15 @@
+{"word":"casa","lang":"Spanish","pos":"noun","senses":[{"glosses":["house"],"synonyms":[{"word":"hogar"}],"hypernyms":[{"word":"vivienda"}]}],"forms":[{"form":"casas","tags":["plural"]}],"id":"es-casa-noun"}
+{"word":"árbol","lang":"Spanish","pos":"noun","senses":[{"glosses":["tree"],"hypernyms":[{"word":"planta"}]}],"forms":[{"form":"árboles","tags":["plural"]}],"id":"es-arbol-noun"}
+{"word":"niño","lang":"Spanish","pos":"noun","senses":[{"glosses":["child"]}],"forms":[{"form":"niños","tags":["plural"]}],"id":"es-nino-noun"}
+{"word":"pingüino","lang":"Spanish","pos":"noun","senses":[{"glosses":["penguin"]}],"id":"es-pinguino-noun"}
+{"word":"acción","lang":"Spanish","pos":"noun","senses":[{"glosses":["action"]}],"id":"es-accion-noun"}
+{"word":"hacer","lang":"Spanish","pos":"verb","senses":[{"glosses":["to do"]}],"forms":[{"form":"hecho","tags":["past-participle"]}],"id":"es-hacer-verb"}
+{"word":"rápido","lang":"Spanish","pos":"adj","senses":[{"glosses":["fast"],"synonyms":[{"word":"veloz"}]}],"id":"es-rapido-adj"}
+{"word":"rápidamente","lang":"Spanish","pos":"adv","senses":[{"glosses":["quickly"]}],"id":"es-rapidamente-adv"}
+{"word":"océano","lang":"Spanish","pos":"noun","senses":[{"glosses":["ocean"]}],"id":"es-oceano-noun"}
+{"word":"electricidad","lang":"Spanish","pos":"noun","senses":[{"glosses":["electricity"]}],"id":"es-electricidad-noun"}
+{"word":"vehículo","lang":"Spanish","pos":"noun","senses":[{"glosses":["vehicle"],"synonyms":[{"word":"automóvil"}]}],"id":"es-vehiculo-noun"}
+{"word":"perro","lang":"Spanish","pos":"noun","senses":[{"glosses":["dog"],"hypernyms":[{"word":"animal"}]}],"id":"es-perro-noun"}
+{"word":"palabra-rara","lang":"Spanish","pos":"noun","senses":[{"glosses":["rare valid word"]}],"id":"es-rara-noun"}
+{"word":"sitio web","lang":"Spanish","pos":"noun","senses":[{"glosses":["web site"]}],"id":"es-sitio-web-noun"}
+{"word":"<b>mal</b>","lang":"Spanish","pos":"noun","senses":[],"id":"invalid-markup"}

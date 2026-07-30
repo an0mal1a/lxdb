@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LexicalResource>
+  <Lexicon id="eswn">
+    <LexicalEntry id="le-casa"><Lemma writtenForm="casa" partOfSpeech="n"/><Sense id="se-casa" synset="es-0001-n"/></LexicalEntry>
+    <LexicalEntry id="le-hogar"><Lemma writtenForm="hogar" partOfSpeech="n"/><Sense id="se-hogar" synset="es-0001-n"/></LexicalEntry>
+    <LexicalEntry id="le-vivienda"><Lemma writtenForm="vivienda" partOfSpeech="n"/><Sense id="se-vivienda" synset="es-0002-n"/></LexicalEntry>
+    <LexicalEntry id="le-perro"><Lemma writtenForm="perro" partOfSpeech="n"/><Sense id="se-perro" synset="es-0003-n"/></LexicalEntry>
+    <LexicalEntry id="le-animal"><Lemma writtenForm="animal" partOfSpeech="n"/><Sense id="se-animal" synset="es-0004-n"/></LexicalEntry>
+    <Synset id="es-0001-n"><SynsetRelation relType="hypernym" target="es-0002-n"/></Synset>
+    <Synset id="es-0003-n"><SynsetRelation relType="hypernym" target="es-0004-n"/></Synset>
+    <Synset id="es-0002-n"></Synset>
+    <Synset id="es-0004-n"></Synset>
+  </Lexicon>
+</LexicalResource>

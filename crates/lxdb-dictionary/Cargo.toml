@@ -12,3 +12,6 @@ categories = ["text-processing"]
 [dependencies]
 lxdb-compiler = { version = "0.1.0", path = "../lxdb-compiler" }
 lxdb-storage = { version = "0.1.0", path = "../lxdb-storage" }
+
+[dev-dependencies]
+lxdb-engine = { version = "0.1.0", path = "../lxdb-engine" }

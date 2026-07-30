@@ -51,16 +51,55 @@ pub enum DictionaryCommand {
     Build {
         /// BCP-47 base language code, currently es or en.
         language: String,
-        /// Output LXDB file.
+        /// Output directory; it will contain dictionary.lxdb and build artifacts.
         #[arg(short, long, value_name = "OUTPUT")]
         output: PathBuf,
-        /// Optional normalized .lx input. Defaults to the versioned development fixture.
-        #[arg(long, value_name = "SOURCE")]
-        source: Option<PathBuf>,
-        /// Reserved capacity limit for a future streaming provider. The local source remains deterministic.
+        /// Deterministic directory containing source fixtures.
+        #[arg(long, value_name = "DIRECTORY")]
+        source_fixture: Option<PathBuf>,
+        /// Dictionary profile.
+        #[arg(long, default_value = "development", value_parser = ["development", "game", "full"])]
+        profile: String,
+        /// Optional per-language TOML configuration path (recorded by the build).
+        #[arg(long, value_name = "PATH")]
+        config: Option<PathBuf>,
+        /// Bound the number of merged lemmas.
         #[arg(long)]
         limit: Option<usize>,
+        /// Ignore existing source cache (used by external source provisioners).
+        #[arg(long)]
+        refresh: bool,
+        /// Do not consult network providers; require a fixture or local cache.
+        #[arg(long)]
+        offline: bool,
+        /// Root directory for cached source snapshots.
+        #[arg(long, value_name = "DIRECTORY")]
+        cache_dir: Option<PathBuf>,
+        #[arg(long)]
+        without_kaikki: bool,
+        #[arg(long)]
+        without_hunspell: bool,
+        #[arg(long)]
+        without_wordnet: bool,
+        #[arg(long)]
+        without_frequency: bool,
+        #[arg(long)]
+        without_embeddings: bool,
+        /// Copy the normalized compiler source to this path.
+        #[arg(long, value_name = "PATH")]
+        emit_source: Option<PathBuf>,
+        #[arg(long)]
+        keep_intermediate: bool,
+        /// Do not emit rejected-entries.jsonl.zst.
+        #[arg(long)]
+        no_rejected_entries: bool,
     },
     /// Refresh the local source manifest without downloading data.
-    Update { language: String },
+    Update {
+        language: String,
+        #[arg(long, value_name = "DIRECTORY")]
+        cache_dir: Option<PathBuf>,
+    },
+    /// Display a concise summary of a generated manifest.
+    Inspect { manifest: PathBuf },
 }

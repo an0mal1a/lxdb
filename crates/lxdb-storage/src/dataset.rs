@@ -129,7 +129,7 @@ impl BinaryDataset {
         length: usize,
         record_size: usize,
     ) -> Result<(), StorageError> {
-        if !length.is_multiple_of(record_size) {
+        if length % record_size != 0 {
             return Err(StorageError::InvalidSectionLength {
                 section_type: section.as_u8(),
                 length,

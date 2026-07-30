@@ -35,6 +35,21 @@ impl Parser {
                 continue;
             }
 
+            // A standalone token keeps accepted-but-isolated dictionary words
+            // representable without manufacturing a self relation. Existing
+            // relation-only `.lx` files remain fully compatible.
+            if let Some(token) = line.strip_prefix("token ") {
+                let token = token.trim();
+                if token.is_empty() {
+                    return Err(CompilerError::InvalidSyntax {
+                        line: line_number,
+                        content: original_line.to_owned(),
+                    });
+                }
+                insert_token(token, &mut known_tokens, &mut tokens);
+                continue;
+            }
+
             let (source, relation_data) =
                 line.split_once("->").ok_or_else(|| CompilerError::InvalidSyntax {
                     line: line_number,
@@ -147,6 +162,17 @@ ownership -> memory : 0.8
         assert_eq!(result.tokens.len(), 3);
         assert_eq!(result.relations.len(), 2);
 
+        remove_test_file(&path);
+    }
+
+    #[test]
+    fn parses_standalone_tokens() {
+        let path = create_test_file("token árbol\nárbol -> planta : 0.88\ntoken aislado\n");
+        let builder = Builder::new().input(path.to_string_lossy().into_owned());
+        let result = Parser.parse(&builder).expect("tokens should parse");
+        assert_eq!(result.tokens.len(), 3);
+        assert_eq!(result.relations.len(), 1);
+        assert_eq!(result.tokens[2].text, "aislado");
         remove_test_file(&path);
     }
 
