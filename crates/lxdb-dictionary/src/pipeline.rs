@@ -236,7 +236,9 @@ fn normalize_and_accept(
     }
     Ok(())
 }
-fn normalize(value: &str) -> Result<String, &'static str> {
+/// Normalizes a user-facing lexical surface exactly as dictionary builds do.
+/// Consumers can use this for lookup without depending on source providers.
+pub fn normalize_lookup(value: &str) -> Result<String, &'static str> {
     let trimmed = value.trim();
     if trimmed.is_empty() {
         return Err("empty");
@@ -265,13 +267,19 @@ fn normalize(value: &str) -> Result<String, &'static str> {
             continue;
         }
         previous_space = false;
-        if !(character.is_alphabetic() || matches!(character, '-' | '\'' | '’' | ' ')) {
+        if !(character.is_alphabetic()
+            || matches!(character, '-' | '\'' | '’' | ' ' | '\u{301}' | '\u{303}' | '\u{308}'))
+        {
             return Err("invalid_characters");
         }
         text.push(character);
     }
     let normalized = compose_spanish_nfc(&text);
     if normalized.is_empty() { Err("empty") } else { Ok(normalized) }
+}
+
+fn normalize(value: &str) -> Result<String, &'static str> {
+    normalize_lookup(value)
 }
 fn compose_spanish_nfc(value: &str) -> String {
     let mut output = value.to_owned();

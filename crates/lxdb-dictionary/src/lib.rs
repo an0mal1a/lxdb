@@ -21,5 +21,5 @@ pub use model::{
     LexicalEntry, LexicalRelation, LexicalRelationKind, SemanticQuality, SourceKind,
     SourceReference,
 };
-pub use pipeline::{build, inspect_manifest, update};
+pub use pipeline::{build, inspect_manifest, normalize_lookup, update};
 pub use report::BuildReport;
