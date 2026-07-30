@@ -1,6 +1,12 @@
 [package]
 name = "lxdb-core"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Core identifiers and semantic graph models for LXDB."
+keywords = ["semantic", "graph", "dataset"]
+categories = ["data-structures"]
 
 [dependencies]

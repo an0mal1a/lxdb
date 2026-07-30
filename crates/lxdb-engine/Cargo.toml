@@ -1,9 +1,15 @@
 [package]
 name = "lxdb-engine"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Lazy semantic token and relation queries over LXDB datasets."
+keywords = ["semantic", "query", "dataset"]
+categories = ["data-structures"]
 
 [dependencies]
-lxdb-storage = { path = "../lxdb-storage" }
-lxdb-format = { path = "../lxdb-format" }
-lxdb-core ={ path = "../lxdb-core"}
+lxdb-storage = { version = "0.1.0", path = "../lxdb-storage" }
+lxdb-format = { version = "0.1.0", path = "../lxdb-format" }
+lxdb-core = { version = "0.1.0", path = "../lxdb-core" }

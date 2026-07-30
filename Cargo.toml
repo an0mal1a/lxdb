@@ -1,10 +1,20 @@
 [workspace]
 resolver = "2"
-
 members = [
     "crates/lxdb-core",
     "crates/lxdb-engine",
     "crates/lxdb-compiler",
     "crates/lxdb-format",
-    "crates/lxdb-cli"
-, "crates/lxdb-storage"]
+    "crates/lxdb-cli",
+    "crates/lxdb-storage",
+    "crates/lxdb-dictionary",
+    "crates/lxdb",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/an0mal1a/lxdb"
+homepage = "https://github.com/an0mal1a/lxdb"
+rust-version = "1.85"

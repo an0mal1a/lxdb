@@ -1,4 +1,5 @@
 mod compile;
+mod dictionary;
 mod inspect;
 mod query;
 
@@ -9,6 +10,9 @@ use lxdb_storage::{BinaryDataset, DatasetReader};
 use crate::error::CliError;
 
 pub use compile::execute_compile;
+pub use dictionary::{
+    execute_dictionary_build, execute_dictionary_languages, execute_dictionary_update,
+};
 pub use inspect::execute_inspect;
 pub use query::execute_query;
 

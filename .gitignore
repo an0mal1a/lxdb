@@ -1,4 +1,7 @@
 target/
+.private/
+.lxdb/
+.lexinexo/
 Cargo.lock
 
 apps/web/node_modules
@@ -9,3 +12,7 @@ apps/web/.output
 .vscode
 
 *.lxdb
+/apps/web/.playwright-cli
+/apps/web/output
+/apps
+/apps/web

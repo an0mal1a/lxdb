@@ -4,6 +4,8 @@ use lxdb_engine::EngineError;
 
 #[derive(Debug)]
 pub enum CliError {
+    Message(String),
+
     CompileDataset {
         source_path: PathBuf,
         output_path: PathBuf,
@@ -21,6 +23,8 @@ pub enum CliError {
 impl fmt::Display for CliError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Message(message) => write!(formatter, "{message}"),
+
             Self::CompileDataset { source_path, output_path, source } => {
                 write!(
                     formatter,
@@ -49,6 +53,8 @@ impl Error for CliError {
             }
 
             Self::Query(error) => Some(error),
+
+            Self::Message(_) => None,
         }
     }
 }

@@ -1,11 +1,18 @@
 [package]
 name = "lxdb-cli"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Command-line compiler, inspector and dictionary builder for LXDB."
+keywords = ["semantic", "dataset", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = { version = "4.5", features = ["derive"] }
 
-lxdb-compiler = { path = "../lxdb-compiler" }
-lxdb-engine = { path = "../lxdb-engine" }
-lxdb-storage = { path = "../lxdb-storage" }
+lxdb-compiler = { version = "0.1.0", path = "../lxdb-compiler" }
+lxdb-engine = { version = "0.1.0", path = "../lxdb-engine" }
+lxdb-storage = { version = "0.1.0", path = "../lxdb-storage" }
+lxdb-dictionary = { version = "0.1.0", path = "../lxdb-dictionary" }

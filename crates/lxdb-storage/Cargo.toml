@@ -1,7 +1,13 @@
 [package]
 name = "lxdb-storage"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Validated zero-copy storage views for LXDB binary datasets."
+keywords = ["binary", "dataset", "zero-copy"]
+categories = ["data-structures"]
 
 [dependencies]
-lxdb-format = { path = "../lxdb-format" }
+lxdb-format = { version = "0.1.0", path = "../lxdb-format" }

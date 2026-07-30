@@ -1,67 +1,62 @@
-# Lexinexo / LXDB
+# LXDB
 
-LXDB is a local-first binary format and query engine for immutable semantic datasets. Lexinexo is the first application planned on top of it: an offline semantic puzzle game that finds paths between ideas without cloud services or remote APIs.
+LXDB is a Rust toolkit for immutable binary semantic datasets. It compiles
+human-readable `.lx` relations into a compact `.lxdb` file, validates the
+format on load, and exposes lazy token and relation queries.
 
-## Architecture
+LXDB is deliberately application-agnostic. Games, search tools and language
+products belong in downstream repositories and consume the public `lxdb` crate.
 
-```text
-.lx source → lxdb-compiler → parser → validator → graph builder → binary writer
-         → .lxdb → lxdb-storage → lxdb-engine → CLI / Lexinexo
-```
+## Crates
 
-- `lxdb-core`: domain IDs, graph and model types.
-- `lxdb-format`: stable binary records, headers and section definitions.
-- `lxdb-storage`: validated, zero-copy views over a `.lxdb` byte buffer.
-- `lxdb-engine`: lazy read-only token and relation queries.
-- `lxdb-compiler`: source parser and deterministic binary writer.
-- `lxdb-cli`: compile, query and inspect commands.
-- `apps/web`: future Lexinexo web application shell.
+- `lxdb`: public facade for ordinary applications.
+- `lxdb-core`: identifiers and graph-domain models.
+- `lxdb-format`: stable binary records and section headers.
+- `lxdb-storage`: validated zero-copy byte views.
+- `lxdb-engine`: lazy read-only queries.
+- `lxdb-compiler`: `.lx` parser and binary writer.
+- `lxdb-dictionary`: normalized language-source pipeline primitives.
+- `lxdb-cli`: compiler, query, inspect and fixture-dictionary command line tool.
 
-## `.lx` source format
+## Source format
 
-Each non-empty, non-comment line declares a directed relation and implicitly declares its two tokens:
+Each non-empty, non-comment line is one weighted directed relation:
 
 ```text
 source token -> target token : weight
 ```
 
-`weight` is an `f32` from `0.0` to `1.0`, inclusive. Whitespace around the source, `->`, target and `:` is ignored. Lines whose trimmed text starts with `#` and empty lines are ignored. Inline comments are not supported. Tokens cannot reference themselves.
+Weights are `f32` values from `0.0` through `1.0`. Tokens are inferred from
+relations; a token with no outgoing relations appears only as a target.
 
-There is currently no standalone token declaration: a token with no outgoing relations is represented by using it only as a relation target.
-
-See [examples/knowledge.lx](examples/knowledge.lx) for a complete source dataset.
-
-## End-to-end example
+## Quick start
 
 ```powershell
-cargo run -p lxdb-cli -- compile ./examples/knowledge.lx -o ./examples/knowledge.lxdb
-cargo run -p lxdb-cli -- query ./examples/knowledge.lxdb rust
-cargo run -p lxdb-cli -- inspect ./examples/knowledge.lxdb
+cargo run -p lxdb-cli -- compile .\examples\knowledge.lx -o .\examples\knowledge.lxdb
+cargo run -p lxdb-cli -- query .\examples\knowledge.lxdb rust
+cargo run -p lxdb-cli -- inspect .\examples\knowledge.lxdb
 ```
 
-The query prints:
+As a library:
 
-```text
-rust
-├─ 0.950 → language
-├─ 0.700 → compiler
-└─ 0.880 → memory
+```toml
+[dependencies]
+lxdb = "0.1"
 ```
 
-`query` reports an absent token without failing; malformed sources, unreadable datasets and invalid binary files return a non-zero exit code.
+```rust
+use lxdb::{BinaryDatasetExt, DatasetReader};
 
-## Current status and limits
-
-The MVP supports compiling a relation dataset, reading its validated binary sections, zero-copy token text resolution, outgoing relation queries and structural inspection. The source language does not yet support metadata or standalone tokens, and the engine does not yet include graph search, similarity or challenge generation. The format currently writes the required token, string-table, relation and adjacency sections; metadata is reserved for a future compatible extension.
+let dataset = DatasetReader::new().open("knowledge.lxdb")?;
+let related = dataset.query().related_to("rust")?;
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
 
 ## Verification
 
 ```powershell
-cargo fmt --all
+cargo fmt --all --check
 cargo check --workspace
 cargo test --workspace
+cargo package --allow-dirty --no-verify -p lxdb
 ```
-
-## License
-
-MIT

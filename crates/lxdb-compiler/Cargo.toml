@@ -1,8 +1,14 @@
 [package]
 name = "lxdb-compiler"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Compiler pipeline from LX source files to LXDB binary datasets."
+keywords = ["compiler", "semantic", "dataset"]
+categories = ["parsing"]
 
 [dependencies]
-lxdb-core = { path = "../lxdb-core" }
-lxdb-format = { path = "../lxdb-format" }
+lxdb-core = { version = "0.1.0", path = "../lxdb-core" }
+lxdb-format = { version = "0.1.0", path = "../lxdb-format" }

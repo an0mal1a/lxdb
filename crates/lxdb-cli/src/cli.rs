@@ -35,4 +35,32 @@ pub enum Command {
         /// Path to the compiled .lxdb dataset.
         dataset: PathBuf,
     },
+
+    /// Build and manage language datasets through the dictionary pipeline.
+    Dictionary {
+        #[command(subcommand)]
+        command: DictionaryCommand,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+pub enum DictionaryCommand {
+    /// List the built-in language pipelines.
+    Languages,
+    /// Compile a versioned linguistic source into a validated LXDB dataset.
+    Build {
+        /// BCP-47 base language code, currently es or en.
+        language: String,
+        /// Output LXDB file.
+        #[arg(short, long, value_name = "OUTPUT")]
+        output: PathBuf,
+        /// Optional normalized .lx input. Defaults to the versioned development fixture.
+        #[arg(long, value_name = "SOURCE")]
+        source: Option<PathBuf>,
+        /// Reserved capacity limit for a future streaming provider. The local source remains deterministic.
+        #[arg(long)]
+        limit: Option<usize>,
+    },
+    /// Refresh the local source manifest without downloading data.
+    Update { language: String },
 }

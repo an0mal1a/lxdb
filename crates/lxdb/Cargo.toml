@@ -1,0 +1,20 @@
+[package]
+name = "lxdb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+description = "Immutable binary semantic datasets: compile, load and query LXDB files."
+readme = "../../README.md"
+keywords = ["semantic", "graph", "dataset", "binary", "nlp"]
+categories = ["data-structures", "encoding", "parser-implementations"]
+
+[dependencies]
+lxdb-compiler = { version = "0.1.0", path = "../lxdb-compiler" }
+lxdb-core = { version = "0.1.0", path = "../lxdb-core" }
+lxdb-dictionary = { version = "0.1.0", path = "../lxdb-dictionary" }
+lxdb-engine = { version = "0.1.0", path = "../lxdb-engine" }
+lxdb-format = { version = "0.1.0", path = "../lxdb-format" }
+lxdb-storage = { version = "0.1.0", path = "../lxdb-storage" }
