@@ -4,7 +4,7 @@
 
 It provides the infrastructure required to build, validate, store and efficiently query large lexical or semantic graphs.
 
-LXDB was originally created as the semantic subsystem behind [Lexicon](https://github.com/YOUR_USERNAME/lexicon), but it is designed as an independent and reusable project.
+LXDB was originally created as the semantic subsystem behind [Lexicon](https://github.com/an0mal1a/lexicon), but it is designed as an independent and reusable project.
 
 > LXDB stores and queries semantic knowledge.  
 > Applications decide what to do with that knowledge.
