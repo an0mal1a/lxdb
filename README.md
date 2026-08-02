@@ -374,7 +374,7 @@ Example manifest:
 {
   "language": "es",
   "format_version": "0.1",
-  "generator_version": "0.1.0",
+  "generator_version": "0.1.0-alpha.1",
   "created_at": "2026-07-30T10:00:00Z",
   "sources": [
     {
@@ -415,12 +415,12 @@ Until crates are published, use the Git repository:
 [dependencies]
 lxdb-storage = {
     git = "https://github.com/an0mal1a/lxdb",
-    tag = "v0.1.0"
+    tag = "v0.1.0-alpha.1"
 }
 
 lxdb-engine = {
     git = "https://github.com/an0mal1a/lxdb",
-    tag = "v0.1.0"
+    tag = "v0.1.0-alpha.1"
 }
 ```
 
