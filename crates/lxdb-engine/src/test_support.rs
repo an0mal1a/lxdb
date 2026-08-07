@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use lxdb_format::{
     AdjacencyRecord, Header, RelationRecord, Section, SectionHeader, TokenRecord, flags,
 };

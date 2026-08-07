@@ -581,15 +581,16 @@ fn relation_weight(kind: LexicalRelationKind, confidence: f32) -> f32 {
     (base * confidence).clamp(0.0, 1.0)
 }
 fn render_rejected(rejected: &[(String, &'static str)]) -> String {
-    rejected
-        .iter()
-        .map(|(word, reason)| {
-            format!(
-                "{{\"source\":\"pipeline\",\"word\":\"{}\",\"reason\":\"{reason}\"}}\n",
-                word.replace('"', "\\\"")
-            )
-        })
-        .collect()
+    let mut output = String::new();
+    for (word, reason) in rejected {
+        writeln!(
+            output,
+            "{{\"source\":\"pipeline\",\"word\":\"{}\",\"reason\":\"{reason}\"}}",
+            word.replace('"', "\\\"")
+        )
+        .expect("String write cannot fail");
+    }
+    output
 }
 /// Creates a standards-compliant Zstandard frame containing raw blocks.
 fn zstd_raw_frame(contents: &[u8]) -> Result<Vec<u8>, DictionaryError> {
