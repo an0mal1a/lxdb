@@ -40,11 +40,10 @@ pub fn parse_kaikki(
             continue;
         };
         let entry_language = json_string(&line, "lang");
-        if let Some(entry_language) = entry_language
-            && entry_language != "Spanish"
-            && entry_language != "English"
-        {
-            continue;
+        if let Some(entry_language) = entry_language {
+            if entry_language != "Spanish" && entry_language != "English" {
+                continue;
+            }
         }
         let mut entry = LexicalEntry::new(word, language);
         if let Some(pos) = json_string(&line, "pos") {
