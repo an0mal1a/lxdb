@@ -90,7 +90,9 @@ fn reports_invalid_sources_and_corrupt_datasets_as_failures() {
     let corrupt_dataset = directory.join("corrupt.lxdb");
     let missing_dataset = directory.join("missing.lxdb");
 
-    fs::write(&invalid_source, "token rust\n").expect("invalid source should be written");
+    // A standalone `token <text>` declaration is valid source syntax. Use a
+    // relation missing its weight to exercise the invalid-source path.
+    fs::write(&invalid_source, "rust -> language\n").expect("invalid source should be written");
     fs::write(&corrupt_dataset, [0_u8; 8]).expect("corrupt dataset should be written");
 
     let (success, _, stderr) = output(
@@ -101,7 +103,7 @@ fn reports_invalid_sources_and_corrupt_datasets_as_failures() {
             .arg(&output_dataset),
     );
     assert!(!success);
-    assert!(stderr.contains("invalid syntax at line 1: token rust"));
+    assert!(stderr.contains("invalid syntax at line 1: rust -> language"));
 
     let (success, _, stderr) = output(
         Command::new(cli())

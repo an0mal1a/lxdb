@@ -1,5 +1,9 @@
 # LXDB
 
+[![CI](https://github.com/an0mal1a/lxdb/actions/workflows/ci.yml/badge.svg)](https://github.com/an0mal1a/lxdb/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/an0mal1a/lxdb?include_prereleases)](https://github.com/an0mal1a/lxdb/releases)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 **LXDB is an open-source binary format, compiler and zero-copy query engine for multilingual semantic datasets.**
 
 It provides the infrastructure required to build, validate, store and efficiently query large lexical or semantic graphs.
@@ -40,7 +44,9 @@ Its main goals are:
 
 ## Project status
 
-LXDB is currently under active development.
+LXDB is currently under active development. The workspace has a reproducible
+compiler → storage → query workflow covered by integration tests and CI.
+The roadmap and current limitations are tracked in [ROADMAP.md](ROADMAP.md).
 
 The project is stabilizing its first usable end-to-end workflow:
 
@@ -76,12 +82,10 @@ lxdb/
 │   ├── lxdb-compiler/
 │   ├── lxdb-dictionary/
 │   └── lxdb-cli/
-├── datasets/
-│   ├── fixtures/
-│   └── generated/
+├── config/
+├── dictionary/
 ├── examples/
 ├── docs/
-├── scripts/
 ├── Cargo.toml
 └── README.md
 ```
@@ -150,10 +154,8 @@ The current format includes sections conceptually equivalent to:
 - relations;
 - adjacency records.
 
-The exact binary contract is documented in:
-```
-docs/format.md
-```
+The exact binary contract is documented in
+[`docs/FORMAT.md`](docs/FORMAT.md).
 
 ---
 
@@ -203,10 +205,8 @@ Or through Cargo:
 
 `cargo run -p lxdb-cli -- compile examples/knowledge.lx --output examples/knowledge.lxdb`
 
-The accepted source syntax is documented in:
-```
-docs/source-format.md
-```
+The accepted source syntax is documented in
+[`docs/COMPILER.md`](docs/COMPILER.md).
 
 Do not assume the textual source format is identical to the binary format. The source format is an authoring and testing interface; `.lxdb` is the runtime representation.
 
@@ -219,13 +219,13 @@ lxdb inspect examples/knowledge.lxdb
 Example output:
 
 ```text
-Dataset: knowledge
-Format version: 0.1
-Tokens: 42
-Relations: 128
-Language: en
-File size: 12.4 KB
-Status: valid
+Dataset: knowledge.lxdb
+Version: 0.1
+Tokens: 7
+Relations: 6
+Adjacency records: 7
+Token string table: 51 bytes
+File size: 483 bytes
 ```
 
 ---
@@ -240,10 +240,9 @@ Example:
 
 ```text
 rust
-├── 0.98 → ownership
-├── 0.94 → borrow-checker
-├── 0.91 → memory-safety
-└── 0.87 → compiler
+├─ 0.950 → language
+├─ 0.700 → compiler
+└─ 0.880 → memory
 ```
 
 The exact output may evolve with the CLI.
@@ -468,12 +467,7 @@ LXDB follows several architectural rules:
 * generated output is written atomically;
 * binary compatibility is versioned explicitly.
 
-Benchmarks will be documented under:
-
-```text
-benches/
-docs/performance.md
-```
+Benchmark notes will be added under `docs/` as the benchmark suite grows.
 
 ---
 
@@ -510,10 +504,10 @@ Small fixtures are intended for:
 * examples;
 * CI.
 
-They live under:
+The checked-in fixtures live under:
 
 ```text
-datasets/fixtures/
+crates/lxdb-dictionary/tests/fixtures/
 ```
 
 Large generated dictionaries should not be committed directly.
@@ -524,27 +518,26 @@ Large generated dictionaries should not be committed directly.
 
 ```text
 docs/
-├── architecture.md
-├── format.md
-├── source-format.md
-├── compatibility.md
+├── ARCHITECTURE.md
+├── FORMAT.md
+├── COMPILER.md
+├── ENGINE.md
+├── GRAPH.md
+├── SPEC.md
+├── CHANGELOG.md
 ├── dictionaries/
 │   ├── README.md
 │   ├── sources.md
 │   ├── spanish.md
 │   ├── normalization.md
-│   ├── relationships.md
+│   ├── semantic-relations.md
 │   └── reproducibility.md
-└── decisions/
+└── ...
 ```
 
-Architecture decisions should be recorded as ADRs:
-
-```text
-docs/decisions/0001-binary-section-layout.md
-docs/decisions/0002-optional-relation-metadata.md
-docs/decisions/0003-dictionary-source-provenance.md
-```
+The top-level [ROADMAP.md](ROADMAP.md) tracks planned work. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and quality
+checks expected in every change.
 
 ---
 
